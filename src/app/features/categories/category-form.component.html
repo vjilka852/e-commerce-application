@@ -1,0 +1,66 @@
+<section class="category-form-page">
+  <header class="form-header">
+    <a routerLink="/categories" class="back-link">
+      <span class="pi pi-arrow-left" aria-hidden="true"></span>
+      <span>Back to Categories</span>
+    </a>
+    <h1>{{ isEditMode ? 'Edit Category' : 'Add Category' }}</h1>
+    <p class="subtitle">Use categories to keep your product catalog organized.</p>
+  </header>
+
+  <form class="form-card" [formGroup]="categoryForm" (ngSubmit)="onSubmit()" novalidate>
+    <div class="form-group">
+      <label for="categoryName">Category name <span class="required">*</span></label>
+      <input
+        pInputText
+        id="categoryName"
+        type="text"
+        formControlName="name"
+        maxlength="60"
+        placeholder="e.g. Hydraulics"
+        autocomplete="off"
+      >
+      @if (categoryForm.controls.name.touched && categoryForm.controls.name.errors?.['required']) {
+        <small class="field-error">Category name is required.</small>
+      } @else if (categoryForm.controls.name.touched && categoryForm.controls.name.errors?.['maxlength']) {
+        <small class="field-error">Category name must be 60 characters or fewer.</small>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="categoryDescription">Description <span class="required">*</span></label>
+      <textarea
+        pTextarea
+        id="categoryDescription"
+        formControlName="description"
+        rows="4"
+        maxlength="240"
+        placeholder="Describe the products in this category"
+      ></textarea>
+      @if (categoryForm.controls.description.touched && categoryForm.controls.description.errors?.['required']) {
+        <small class="field-error">Category description is required.</small>
+      } @else if (categoryForm.controls.description.touched && categoryForm.controls.description.errors?.['maxlength']) {
+        <small class="field-error">Description must be 240 characters or fewer.</small>
+      }
+    </div>
+
+    <div class="active-control">
+      <div class="active-copy">
+        <label for="categoryActive">Category status</label>
+        <span>{{ categoryForm.controls.active.value ? 'Active categories can be assigned to products.' : 'Inactive categories are hidden from new product assignments.' }}</span>
+      </div>
+      <p-toggleswitch inputId="categoryActive" formControlName="active" />
+    </div>
+
+    @if (submitError) {
+      <p class="error-banner" role="alert">{{ submitError }}</p>
+    }
+
+    <div class="form-actions">
+      <button pButton routerLink="/categories" severity="secondary">Cancel</button>
+      <button pButton type="submit" icon="pi pi-check">
+        {{ isEditMode ? 'Save Changes' : 'Add Category' }}
+      </button>
+    </div>
+  </form>
+</section>

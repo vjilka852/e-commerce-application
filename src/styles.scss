@@ -1,1 +1,162 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   Apex Industrial UK - Global Design System & Variables
+   ========================================================================== */
+
+:root {
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Industrial Color Tokens */
+  --ind-navy-950: #090e1a;
+  --ind-navy-900: #0f172a;
+  --ind-navy-850: #131e38;
+  --ind-navy-800: #1e293b;
+  --ind-navy-700: #334155;
+
+  --ind-blue-800: #1e40af;
+  --ind-blue-700: #1d4ed8;
+  --ind-blue-600: #2563eb;
+  --ind-blue-500: #3b82f6;
+  --ind-blue-100: #dbeafe;
+  --ind-blue-50: #eff6ff;
+
+  --ind-amber-600: #d97706;
+  --ind-amber-500: #f59e0b;
+  --ind-amber-100: #fef3c7;
+  --ind-amber-50: #fffbeb;
+
+  --ind-green-700: #047857;
+  --ind-green-600: #059669;
+  --ind-green-500: #10b981;
+  --ind-green-100: #d1fae5;
+  --ind-green-50: #ecfdf5;
+
+  --ind-slate-50: #f8fafc;
+  --ind-slate-100: #f1f5f9;
+  --ind-slate-200: #e2e8f0;
+  --ind-slate-300: #cbd5e1;
+  --ind-slate-400: #94a3b8;
+  --ind-slate-500: #64748b;
+  --ind-slate-600: #475569;
+  --ind-slate-700: #334155;
+  --ind-slate-800: #1e293b;
+  --ind-slate-900: #0f172a;
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+
+  /* PrimeNG Token Overrides */
+  --p-font-family: var(--font-sans);
+  --p-primary-color: var(--ind-blue-700);
+  --p-primary-hover-color: var(--ind-blue-800);
+  --p-primary-active-color: #1e3a8a;
+  --p-content-border-color: var(--ind-slate-200);
+  --p-content-background: #ffffff;
+  --p-border-radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background-color: var(--ind-slate-50);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ind-slate-900);
+  background-color: var(--ind-slate-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global Industrial Utilities */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* PrimeNG Overrides for Industrial Precision Look */
+.p-button {
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.p-inputtext,
+.p-textarea {
+  font-family: var(--font-sans) !important;
+  border-radius: 8px !important;
+  border-color: var(--ind-slate-300) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+
+  &:focus {
+    border-color: var(--ind-blue-600) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ind-slate-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ind-slate-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ind-slate-400);
+}
+
+/* PrimeNG Toast Styling */
+.p-toast {
+  z-index: 9999 !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.88rem !important;
+
+  .p-toast-message {
+    border-radius: 8px !important;
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.08) !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .p-toast-message-content {
+    padding: 0.85rem 1.15rem !important;
+    gap: 0.65rem !important;
+  }
+
+  .p-toast-title {
+    font-weight: 700 !important;
+    font-size: 0.92rem !important;
+  }
+
+  .p-toast-detail {
+    font-size: 0.82rem !important;
+    margin-top: 0.2rem !important;
+  }
+}

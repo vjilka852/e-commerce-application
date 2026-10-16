@@ -1,0 +1,199 @@
+<section class="products-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h1>Products</h1>
+      <p class="subtitle">Manage your product catalog, pricing, and stock levels.</p>
+    </div>
+    <div class="header-action">
+      <a routerLink="/create" class="btn-primary" id="btn-add-product">
+        <span class="pi pi-plus" aria-hidden="true"></span>
+        <span>Add Product</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters & Search Toolbar -->
+  <div class="table-toolbar">
+    <div class="search-field">
+      <span class="pi pi-search search-icon" aria-hidden="true"></span>
+      <input
+        type="text"
+        pInputText
+        placeholder="Search products by name or SKU..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+      @if (searchQuery()) {
+        <button
+          type="button"
+          class="clear-btn"
+          (click)="searchQuery.set('')"
+          aria-label="Clear search"
+        >
+          <span class="pi pi-times"></span>
+        </button>
+      }
+    </div>
+
+    <div class="filter-controls">
+      <div class="category-select-wrapper">
+        <label for="categoryFilter" class="select-label">Category:</label>
+        <select
+          id="categoryFilter"
+          [ngModel]="selectedCategory()"
+          (ngModelChange)="setCategory($event)"
+          class="category-select"
+        >
+          @for (cat of categories(); track cat) {
+            <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="item-count">
+        <span>Showing <strong>{{ filteredProducts().length }}</strong> products</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Table -->
+  <div class="table-card">
+    <table class="simple-table">
+      <thead>
+        <tr>
+          <th class="col-product">Product</th>
+          <th class="col-category">Category</th>
+          <th class="col-price">Price (GBP)</th>
+          <th class="col-stock">Status</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of filteredProducts(); track product.id) {
+          <tr>
+            <!-- Product Identity -->
+            <td class="col-product">
+              <div class="product-cell">
+                <img
+                  [src]="product.imageUrl"
+                  [alt]="product.name"
+                  class="product-thumb"
+                  (error)="onImageError($event)"
+                  loading="lazy"
+                />
+                <div class="product-details">
+                  <span class="product-name">{{ product.name }}</span>
+                  <span class="product-sku font-mono">SKU: {{ product.sku || ('UK-IND-' + product.id) }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Category -->
+            <td class="col-category">
+              <span class="category-badge">{{ product.category }}</span>
+            </td>
+
+            <!-- Price -->
+            <td class="col-price">
+              <div class="price-box">
+                <span class="main-price font-mono">£{{ product.price | number:'1.2-2' }}</span>
+                <span class="vat-note">ex. VAT</span>
+              </div>
+            </td>
+
+            <!-- Stock Status -->
+            <td class="col-stock">
+              @if (product.stockStatus === 'In Stock' || !product.stockStatus) {
+                <span class="status-tag status-in-stock">In Stock</span>
+              } @else if (product.stockStatus === 'Low Stock') {
+                <span class="status-tag status-low-stock">Low Stock</span>
+              } @else {
+                <span class="status-tag status-order">Made to Order</span>
+              }
+            </td>
+
+            <!-- Actions -->
+            <td class="col-actions">
+              <div class="action-buttons">
+                <a
+                  [routerLink]="['/edit', product.id]"
+                  class="btn-action btn-edit"
+                  title="Edit Product"
+                >
+                  <span class="pi pi-pencil"></span>
+                  <span>Edit</span>
+                </a>
+                <button
+                  type="button"
+                  class="btn-action btn-delete"
+                  (click)="promptDelete(product)"
+                  title="Delete Product"
+                >
+                  <span class="pi pi-trash"></span>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+
+        @if (filteredProducts().length === 0) {
+          <tr>
+            <td colspan="5" class="empty-cell">
+              <div class="empty-state">
+                <span class="pi pi-box empty-icon"></span>
+                <p class="empty-title">No products found</p>
+                <p class="empty-desc">There are no products matching your current search or category filter.</p>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  (click)="searchQuery.set(''); selectedCategory.set('All')"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DELETE CONFIRMATION POPUP MODAL -->
+  <p-dialog
+    [(visible)]="isDeleteModalOpen"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: 'min(90vw, 440px)' }"
+    header="Confirm Delete"
+    (onHide)="cancelDelete()"
+  >
+    <div class="confirm-modal-body">
+      <div class="confirm-warning-icon">
+        <span class="pi pi-exclamation-triangle"></span>
+      </div>
+      <div class="confirm-text">
+        <h4>Delete Product?</h4>
+        <p>
+          Are you sure you want to delete
+          <strong>"{{ productToDelete()?.name }}"</strong>?
+        </p>
+        <span class="confirm-notice">This action will remove the product from the catalog and cannot be undone.</span>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="confirm-modal-footer">
+        <button type="button" class="btn-secondary" (click)="cancelDelete()">
+          Cancel
+        </button>
+        <button type="button" class="btn-danger" (click)="executeDelete()">
+          <span class="pi pi-trash"></span>
+          <span>Delete Product</span>
+        </button>
+      </div>
+    </ng-template>
+  </p-dialog>
+</section>

@@ -1,0 +1,124 @@
+<section class="categories-page">
+  <header class="page-header">
+    <div>
+      <h1>Categories</h1>
+      <p class="subtitle">Organize products into manageable groups.</p>
+    </div>
+    <a routerLink="/categories/create" class="btn-primary">
+      <span class="pi pi-plus" aria-hidden="true"></span>
+      <span>Add Category</span>
+    </a>
+  </header>
+
+  <div class="toolbar">
+    <label class="search-field">
+      <span class="pi pi-search" aria-hidden="true"></span>
+      <span class="visually-hidden">Search categories</span>
+      <input
+        type="search"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="updateSearch($event)"
+        placeholder="Search by name or description"
+      >
+    </label>
+    <span class="category-count">{{ filteredCategories().length }} categories</span>
+  </div>
+
+  <div class="table-card">
+    <table class="simple-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th class="actions-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (category of paginatedCategories(); track category.id) {
+          <tr>
+            <td class="category-name">{{ category.name }}</td>
+            <td class="description">{{ category.description }}</td>
+            <td>
+              <div class="status-cell">
+                <p-toggleswitch
+                  [ngModel]="category.active"
+                  (ngModelChange)="updateActive(category, $event)"
+                  [ngModelOptions]="{ standalone: true }"
+                  [inputId]="'category-active-' + category.id"
+                  [ariaLabel]="'Set ' + category.name + (category.active ? ' inactive' : ' active')"
+                />
+                <span class="status-label" [class.inactive]="!category.active">
+                  {{ category.active ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+            </td>
+            <td class="actions-column">
+              <div class="actions">
+                <a
+                  [routerLink]="['/categories', category.id, 'edit']"
+                  class="btn-action btn-edit"
+                  [attr.aria-label]="'Edit ' + category.name"
+                >
+                  <span class="pi pi-pencil" aria-hidden="true"></span>
+                  <span>Edit</span>
+                </a>
+                <button
+                  type="button"
+                  class="btn-action btn-delete"
+                  (click)="promptDelete(category)"
+                  [disabled]="getProductCount(category.name) > 0"
+                  [attr.aria-label]="'Delete ' + category.name"
+                  [title]="getProductCount(category.name) > 0 ? 'Remove or reassign its products before deleting' : 'Delete category'"
+                >
+                  <span class="pi pi-trash" aria-hidden="true"></span>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+        @if (filteredCategories().length === 0) {
+          <tr>
+            <td colspan="4" class="empty-cell">
+              <span class="pi pi-tags" aria-hidden="true"></span>
+              <div class="empty-state">
+                <p class="empty-title">No categories found</p>
+                <p class="empty-desc">Try another search or add a category.</p>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <p-paginator
+      [first]="first()"
+      [rows]="rows()"
+      [totalRecords]="filteredCategories().length"
+      [rowsPerPageOptions]="rowsPerPageOptions"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} of {totalRecords}"
+      (onPageChange)="onPageChange($event)"
+    />
+  </div>
+
+  @if (categoryToDelete(); as category) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <section
+        class="confirm-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-category-title"
+        (click)="$event.stopPropagation()"
+      >
+        <span class="pi pi-exclamation-triangle warning-icon" aria-hidden="true"></span>
+        <h2 id="delete-category-title">Delete category?</h2>
+        <p>Are you sure you want to delete <strong>{{ category.name }}</strong>? This cannot be undone.</p>
+        <div class="dialog-actions">
+          <button type="button" class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn-danger" (click)="executeDelete()">Delete Category</button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

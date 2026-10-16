@@ -1,0 +1,134 @@
+:host {
+  display: block;
+}
+
+.category-form-page {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 44rem);
+}
+
+.form-header {
+  display: grid;
+  gap: 0.4rem;
+
+  h1 {
+    margin: 0.25rem 0 0;
+    color: var(--ind-slate-900);
+    font-size: 1.55rem;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: var(--ind-slate-500);
+    font-size: 0.88rem;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  color: var(--ind-slate-500);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ind-blue-700);
+  }
+}
+
+.form-card {
+  display: grid;
+  gap: 1.2rem;
+  padding: clamp(1.2rem, 4vw, 1.75rem);
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.form-group {
+  display: grid;
+  gap: 0.4rem;
+
+  label {
+    color: var(--ind-slate-700);
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+  }
+}
+
+.active-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 8px;
+  background: var(--app-surface-muted);
+}
+
+.active-copy {
+  display: grid;
+  gap: 0.25rem;
+
+  label {
+    color: var(--ind-slate-700);
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  span {
+    color: var(--ind-slate-500);
+    font-size: 0.78rem;
+  }
+}
+
+.required,
+.field-error {
+  color: #dc2626;
+}
+
+.field-error,
+.field-hint {
+  font-size: 0.76rem;
+}
+
+.field-hint {
+  color: var(--ind-slate-500);
+}
+
+.error-banner {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.84rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}
+
+@media (max-width: 520px) {
+  .form-actions {
+    flex-direction: column-reverse;
+
+    > * {
+      width: 100%;
+    }
+  }
+}

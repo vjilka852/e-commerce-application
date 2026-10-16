@@ -1,0 +1,158 @@
+<section class="form-wrapper">
+  <!-- Top Navigation & Header -->
+  <div class="form-header">
+    <a routerLink="/products" class="back-link">
+      <span class="pi pi-arrow-left"></span>
+      <span>Back to Products</span>
+    </a>
+    <h1>{{ isEditMode ? 'Update Product' : 'Add New Product' }}</h1>
+    <p class="subtitle">{{ isEditMode ? 'Modify the product details and save changes.' : 'Enter product information to add it to your store catalog.' }}</p>
+  </div>
+
+  <!-- Normal Clean Form Card -->
+  <div class="form-card">
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <!-- Product Name -->
+      <div class="form-group">
+        <label for="name">Product Name <span class="required">*</span></label>
+        <input
+          pInputText
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. Hydraulic Variable Piston Pump"
+          autocomplete="off"
+        />
+        @if (productForm.controls.name.touched && productForm.controls.name.invalid) {
+          <small class="field-error">Product name is required.</small>
+        }
+      </div>
+
+      <!-- Category & Price Row -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="category">Category <span class="required">*</span></label>
+          <select id="category" formControlName="category" class="form-select">
+            @for (category of categories(); track category.id) {
+              <option [value]="category.name">{{ category.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="price">Price (GBP £) <span class="required">*</span></label>
+          <div class="currency-input-wrap">
+            <span class="currency-symbol">£</span>
+            <input
+              pInputText
+              id="price"
+              type="number"
+              formControlName="price"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
+            />
+          </div>
+          @if (productForm.controls.price.touched && productForm.controls.price.invalid) {
+            <small class="field-error">Enter a valid price greater than £0.00.</small>
+          }
+        </div>
+      </div>
+
+      <!-- SKU & Stock Status Row -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="sku">SKU / Part Number</label>
+          <input
+            pInputText
+            id="sku"
+            type="text"
+            formControlName="sku"
+            placeholder="e.g. UK-HYD-1020"
+            class="font-mono"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="stockStatus">Stock Availability</label>
+          <select id="stockStatus" formControlName="stockStatus" class="form-select">
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Made to Order">Made to Order</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description">Description <span class="required">*</span></label>
+        <textarea
+          pTextarea
+          id="description"
+          formControlName="description"
+          rows="4"
+          placeholder="Brief description of product features, technical parameters, and applications..."
+        ></textarea>
+        @if (productForm.controls.description.touched && productForm.controls.description.invalid) {
+          <small class="field-error">Product description is required.</small>
+        }
+      </div>
+
+      <!-- Product Image -->
+      <div class="form-group">
+        <label for="imageUpload">Product Image</label>
+        <div class="image-upload-container">
+          <input
+            id="imageUpload"
+            type="file"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+            class="hidden-file-input"
+            #fileInput
+          />
+          <button
+            type="button"
+            class="btn-select-file"
+            (click)="fileInput.click()"
+          >
+            <span class="pi pi-upload"></span>
+            <span>Choose Image</span>
+          </button>
+          <span class="upload-hint">Supported formats: PNG, JPG, WebP (up to 2 MB)</span>
+        </div>
+
+        @if (imageError) {
+          <small class="field-error">{{ imageError }}</small>
+        }
+
+        <!-- Image Preview if chosen -->
+        @if (imagePreview) {
+          <div class="selected-image-preview">
+            <img [src]="imagePreview" alt="Selected product image" />
+            <div class="preview-meta">
+              <span class="preview-label">Current Product Image</span>
+              <button type="button" class="btn-remove-img" (click)="removeImage()">Remove</button>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (submitError) {
+        <div class="error-banner">
+          <span class="pi pi-exclamation-circle"></span>
+          <span>{{ submitError }}</span>
+        </div>
+      }
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <a routerLink="/products" class="btn-secondary">Cancel</a>
+        <button type="submit" class="btn-submit">
+          <span class="pi pi-check"></span>
+          <span>{{ buttonLabel }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

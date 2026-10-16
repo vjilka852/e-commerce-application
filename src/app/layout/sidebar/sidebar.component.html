@@ -1,0 +1,50 @@
+<aside class="sidebar-container" aria-label="Main navigation">
+  <div class="sidebar-header">
+    <a routerLink="/products" class="sidebar-brand">
+      <span class="brand-icon-box">
+        <span class="pi pi-box brand-icon" aria-hidden="true"></span>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">E-Commerce</span>
+        <span class="brand-region">Industrial UK Portal</span>
+      </span>
+    </a>
+  </div>
+
+  <nav class="sidebar-menu" aria-label="Catalog">
+    <span class="menu-label">Catalog module</span>
+
+    <a
+      routerLink="/products"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="menu-item"
+      id="sidebar-nav-products"
+    >
+      <span class="pi pi-table menu-icon" aria-hidden="true"></span>
+      <span class="menu-title">Products</span>
+    </a>
+
+    <a
+      routerLink="/categories"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: false }"
+      class="menu-item"
+      id="sidebar-nav-categories"
+    >
+      <span class="pi pi-tags menu-icon" aria-hidden="true"></span>
+      <span class="menu-title">Categories</span>
+    </a>
+
+  </nav>
+
+  <footer class="sidebar-footer">
+    <div class="client-info-card">
+      <div class="client-row">
+        <span class="flag-icon" aria-hidden="true">🇬🇧</span>
+        <span class="client-label">UK Region (GBP £)</span>
+      </div>
+      <span class="client-sub">VAT 20% Standard</span>
+    </div>
+  </footer>
+</aside>
