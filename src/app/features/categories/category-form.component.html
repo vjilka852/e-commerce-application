@@ -57,8 +57,9 @@
     }
 
     <div class="form-actions">
-      <button pButton routerLink="/categories" severity="secondary">Cancel</button>
-      <button pButton type="submit" icon="pi pi-check">
+      <button type="button" class="btn-secondary" routerLink="/categories">Cancel</button>
+      <button type="submit" class="btn-submit">
+        <span class="pi pi-check" aria-hidden="true"></span>
         {{ isEditMode ? 'Save Changes' : 'Add Category' }}
       </button>
     </div>

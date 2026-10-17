@@ -12,6 +12,20 @@
         <span class="page-context">Industrial Storefront</span>
       </div>
       <div class="navbar-right">
+        <button
+          type="button"
+          class="theme-toggle"
+          (click)="toggleTheme()"
+          [attr.aria-label]="themeService.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+          [title]="themeService.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+        >
+          <span
+            class="pi"
+            [class.pi-sun]="themeService.isDark()"
+            [class.pi-moon]="!themeService.isDark()"
+            aria-hidden="true"
+          ></span>
+        </button>
         <div class="user-profile">
           <div class="user-avatar">AC</div>
           <span class="user-name">Client Admin</span>

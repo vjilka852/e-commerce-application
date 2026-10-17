@@ -84,19 +84,18 @@
   line-height: 1.45;
 }
 
-.status-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  white-space: nowrap;
-}
-
 .status-label {
-  color: var(--ind-green-700);
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: var(--app-success-bg);
+  color: var(--app-success-text);
   font-size: 0.8rem;
   font-weight: 600;
+  white-space: nowrap;
 
   &.inactive {
+    background: var(--ind-slate-100);
     color: var(--ind-slate-500);
   }
 }

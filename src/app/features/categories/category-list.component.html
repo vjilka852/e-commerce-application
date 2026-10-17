@@ -25,7 +25,7 @@
   </div>
 
   <div class="table-card">
-    <table class="simple-table">
+    <table class="data-table">
       <thead>
         <tr>
           <th>Category</th>
@@ -40,18 +40,9 @@
             <td class="category-name">{{ category.name }}</td>
             <td class="description">{{ category.description }}</td>
             <td>
-              <div class="status-cell">
-                <p-toggleswitch
-                  [ngModel]="category.active"
-                  (ngModelChange)="updateActive(category, $event)"
-                  [ngModelOptions]="{ standalone: true }"
-                  [inputId]="'category-active-' + category.id"
-                  [ariaLabel]="'Set ' + category.name + (category.active ? ' inactive' : ' active')"
-                />
-                <span class="status-label" [class.inactive]="!category.active">
-                  {{ category.active ? 'Active' : 'Inactive' }}
-                </span>
-              </div>
+              <span class="status-label" [class.inactive]="!category.active">
+                {{ category.active ? 'Active' : 'Inactive' }}
+              </span>
             </td>
             <td class="actions-column">
               <div class="actions">

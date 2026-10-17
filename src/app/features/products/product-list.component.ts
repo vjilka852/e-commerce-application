@@ -10,6 +10,8 @@ import { MessageService } from 'primeng/api';
 import { ProductService } from '../../service/product.service';
 import { CategoryService } from '../../service/category.service';
 import { Product } from '../../models/product.model';
+import { PaginatorModule } from 'primeng/paginator';
+import { PaginatorState } from 'primeng/types/paginator';
 
 @Component({
   selector: 'app-product-list',
@@ -22,7 +24,8 @@ import { Product } from '../../models/product.model';
     TableModule,
     ButtonModule,
     InputTextModule,
-    DialogModule
+    DialogModule,
+    PaginatorModule
   ],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss',
@@ -35,6 +38,9 @@ export class ProductListComponent {
   // Search & Filter
   readonly searchQuery = signal('');
   readonly selectedCategory = signal<string>('All');
+  readonly first = signal(0);
+  readonly rows = signal(10);
+  readonly rowsPerPageOptions = [5, 10, 20];
 
   // Delete Confirmation Modal State
   readonly productToDelete = signal<Product | null>(null);
@@ -69,6 +75,10 @@ export class ProductListComponent {
     });
   });
 
+  readonly paginatedProducts = computed(() =>
+    this.filteredProducts().slice(this.first(), this.first() + this.rows())
+  );
+
   // SVG Fallback for broken images
   readonly fallbackImageSvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60" fill="%23f1f5f9"><rect width="60" height="60" fill="%23f1f5f9" rx="6"/><circle cx="30" cy="30" r="12" fill="%23cbd5e1"/></svg>';
 
@@ -79,8 +89,19 @@ export class ProductListComponent {
     }
   }
 
+  updateSearch(query: string): void {
+    this.searchQuery.set(query);
+    this.first.set(0);
+  }
+
   setCategory(cat: string): void {
     this.selectedCategory.set(cat);
+    this.first.set(0);
+  }
+
+  onPageChange(event: PaginatorState): void {
+    this.first.set(event.first ?? 0);
+    this.rows.set(event.rows ?? this.rows());
   }
 
   // Delete Confirmation Popup Handlers

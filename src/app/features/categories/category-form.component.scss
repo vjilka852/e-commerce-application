@@ -46,7 +46,7 @@
   padding: clamp(1.2rem, 4vw, 1.75rem);
   border: 1px solid var(--ind-slate-200);
   border-radius: 8px;
-  background: #fff;
+  background: var(--app-surface);
 }
 
 .form-group {
@@ -94,7 +94,7 @@
 
 .required,
 .field-error {
-  color: #dc2626;
+  color: var(--app-danger-text);
 }
 
 .field-error,
@@ -109,10 +109,10 @@
 .error-banner {
   margin: 0;
   padding: 0.7rem 0.85rem;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--app-danger-border);
   border-radius: 6px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
   font-size: 0.84rem;
 }
 

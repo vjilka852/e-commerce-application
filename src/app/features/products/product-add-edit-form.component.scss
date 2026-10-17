@@ -56,7 +56,7 @@
    Form Card
    ========================================================================== */
 .form-card {
-  background: #ffffff;
+  background: var(--app-surface);
   border: 1px solid var(--ind-slate-200);
   border-radius: 8px;
   padding: 1.75rem;
@@ -89,7 +89,8 @@
     font-size: 0.88rem;
     border: 1px solid var(--ind-slate-300);
     border-radius: 6px;
-    background: #ffffff;
+    background: var(--app-surface);
+    color: var(--ind-slate-800);
     transition: border-color 0.15s ease;
 
     &:focus {
@@ -245,7 +246,7 @@
   padding: 0.55rem 1.1rem;
   border-radius: 6px;
   border: 1px solid var(--ind-slate-300);
-  background: #ffffff;
+  background: var(--app-surface);
   color: var(--ind-slate-700);
   font-size: 0.85rem;
   font-weight: 600;

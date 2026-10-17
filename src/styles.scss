@@ -43,6 +43,19 @@
   --ind-slate-800: #1e293b;
   --ind-slate-900: #0f172a;
 
+  --app-surface: #ffffff;
+  --app-surface-muted: #f8fafc;
+  --app-surface-hover: #f1f5f9;
+  --app-danger-bg: #fef2f2;
+  --app-danger-border: #fecaca;
+  --app-danger-text: #b91c1c;
+  --app-success-bg: #ecfdf5;
+  --app-success-text: #047857;
+  --app-warning-bg: #fffbeb;
+  --app-warning-text: #b45309;
+  --app-info-bg: #eff6ff;
+  --app-info-text: #1d4ed8;
+
   /* Elevation Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
@@ -55,8 +68,61 @@
   --p-primary-hover-color: var(--ind-blue-800);
   --p-primary-active-color: #1e3a8a;
   --p-content-border-color: var(--ind-slate-200);
-  --p-content-background: #ffffff;
+  --p-content-background: var(--app-surface);
   --p-border-radius: 8px;
+  color-scheme: light;
+}
+
+:root.app-dark {
+  color-scheme: dark;
+
+  --ind-navy-950: #f8fafc;
+  --ind-navy-900: #f1f5f9;
+  --ind-navy-850: #e2e8f0;
+  --ind-navy-800: #cbd5e1;
+  --ind-navy-700: #94a3b8;
+
+  --ind-blue-800: #2563eb;
+  --ind-blue-700: #3b82f6;
+  --ind-blue-600: #60a5fa;
+  --ind-blue-500: #93c5fd;
+  --ind-blue-100: #1e3a8a;
+  --ind-blue-50: #172554;
+
+  --ind-green-700: #34d399;
+  --ind-green-600: #10b981;
+  --ind-green-500: #34d399;
+  --ind-green-100: #064e3b;
+  --ind-green-50: #022c22;
+
+  --ind-slate-50: #0b1220;
+  --ind-slate-100: #111c2e;
+  --ind-slate-200: #263449;
+  --ind-slate-300: #3b4b62;
+  --ind-slate-400: #8292a8;
+  --ind-slate-500: #a3b0c2;
+  --ind-slate-600: #c1ccda;
+  --ind-slate-700: #d5deea;
+  --ind-slate-800: #e8edf4;
+  --ind-slate-900: #f3f6fa;
+
+  --app-surface: #111c2e;
+  --app-surface-muted: #172438;
+  --app-surface-hover: #1b2a40;
+  --app-danger-bg: #450a0a;
+  --app-danger-border: #7f1d1d;
+  --app-danger-text: #fecaca;
+  --app-success-bg: #064e3b;
+  --app-success-text: #6ee7b7;
+  --app-warning-bg: #422006;
+  --app-warning-text: #fcd34d;
+  --app-info-bg: #172554;
+  --app-info-text: #93c5fd;
+
+  --p-content-background: var(--app-surface);
+  --p-content-border-color: var(--ind-slate-200);
+  --p-primary-color: var(--ind-blue-700);
+  --p-primary-hover-color: var(--ind-blue-800);
 }
 
 * {
@@ -74,8 +140,138 @@ body {
   font-family: var(--font-sans);
   color: var(--ind-slate-900);
   background-color: var(--ind-slate-50);
+  transition: color 150ms ease, background-color 150ms ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Shared table layout used by product and category lists. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--ind-slate-800);
+  text-align: left;
+
+  thead {
+    background: var(--app-surface-muted);
+    border-bottom: 1px solid var(--ind-slate-200);
+
+    th {
+      padding: 0.75rem 1rem;
+      color: var(--ind-slate-500);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--ind-slate-100);
+    transition: background-color 0.12s ease;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    &:hover {
+      background: var(--app-surface-hover);
+    }
+  }
+
+  td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+  }
+}
+
+/* Shared action colors keep buttons consistent across feature screens. */
+.btn-primary,
+.btn-submit,
+.btn-secondary,
+.btn-danger,
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.btn-primary,
+.btn-submit {
+  padding: 0.6rem 1rem;
+  border-color: var(--ind-blue-800);
+  background: var(--ind-blue-700);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: var(--ind-blue-800);
+  }
+}
+
+.btn-secondary,
+.btn-action {
+  padding: 0.45rem 0.85rem;
+  border-color: var(--ind-slate-300);
+  background: var(--app-surface);
+  color: var(--ind-slate-700);
+
+  &:hover:not(:disabled) {
+    background: var(--app-surface-hover);
+    border-color: var(--ind-slate-400);
+  }
+}
+
+.btn-danger {
+  padding: 0.45rem 0.85rem;
+  border-color: #b91c1c;
+  background: #dc2626;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #b91c1c;
+  }
+}
+
+.btn-action.btn-delete {
+  padding: 0.35rem 0.65rem;
+  border-color: var(--app-danger-border);
+  background: var(--app-surface);
+  color: var(--app-danger-text);
+
+  &:hover:not(:disabled) {
+    background: var(--app-danger-bg);
+    border-color: var(--app-danger-border);
+  }
+}
+
+.btn-action.btn-edit {
+  padding: 0.35rem 0.65rem;
+}
+
+.btn-primary:disabled,
+.btn-submit:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+.btn-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.p-paginator {
+  border: 0 !important;
+  border-top: 1px solid var(--ind-slate-200) !important;
+  border-radius: 0 !important;
+  background: var(--app-surface) !important;
+  color: var(--ind-slate-600) !important;
 }
 
 /* Global Industrial Utilities */
@@ -106,12 +302,29 @@ body {
   font-family: var(--font-sans) !important;
   border-radius: 8px !important;
   border-color: var(--ind-slate-300) !important;
+  background: var(--app-surface) !important;
+  color: var(--ind-slate-800) !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 
   &:focus {
     border-color: var(--ind-blue-600) !important;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
   }
+}
+
+.p-inputtext::placeholder,
+.p-textarea::placeholder {
+  color: var(--ind-slate-400) !important;
+}
+
+.p-paginator .p-paginator-page.p-paginator-page-selected {
+  background: var(--ind-blue-700) !important;
+  border-color: var(--ind-blue-700) !important;
+  color: #ffffff !important;
+}
+
+.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider {
+  background: var(--ind-blue-700) !important;
 }
 
 /* Custom Scrollbars */

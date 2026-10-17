@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { CategoryService } from '../../service/category.service';
@@ -11,7 +10,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 @Component({
   selector: 'app-category-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputTextModule, TextareaModule, ToggleSwitchModule],
+  imports: [ReactiveFormsModule, RouterLink, InputTextModule, TextareaModule, ToggleSwitchModule],
   templateUrl: './category-form.component.html',
   styleUrl: './category-form.component.scss'
 })

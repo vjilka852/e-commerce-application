@@ -22,7 +22,7 @@
 
 .top-navbar {
   height: 56px;
-  background: #ffffff;
+  background: var(--app-surface);
   border-bottom: 1px solid var(--ind-slate-200);
   display: flex;
   align-items: center;
@@ -48,6 +48,35 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ind-slate-600);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+
+  &:hover {
+    border-color: var(--ind-slate-200);
+    background: var(--app-surface-hover);
+    color: var(--ind-blue-700);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ind-blue-600);
+    outline-offset: 2px;
+  }
+
+  .pi {
+    font-size: 1rem;
+  }
 }
 
 .quick-add-btn {
@@ -81,8 +110,8 @@
 .user-avatar {
   width: 2rem;
   height: 2rem;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--ind-slate-100);
+  color: var(--ind-slate-700);
   border-radius: 50%;
   display: flex;
   align-items: center;

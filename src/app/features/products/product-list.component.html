@@ -22,13 +22,13 @@
         pInputText
         placeholder="Search products by name or SKU..."
         [ngModel]="searchQuery()"
-        (ngModelChange)="searchQuery.set($event)"
+        (ngModelChange)="updateSearch($event)"
       />
       @if (searchQuery()) {
         <button
           type="button"
           class="clear-btn"
-          (click)="searchQuery.set('')"
+          (click)="updateSearch('')"
           aria-label="Clear search"
         >
           <span class="pi pi-times"></span>
@@ -59,7 +59,7 @@
 
   <!-- Products Table -->
   <div class="table-card">
-    <table class="simple-table">
+    <table class="data-table">
       <thead>
         <tr>
           <th class="col-product">Product</th>
@@ -70,7 +70,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (product of filteredProducts(); track product.id) {
+        @for (product of paginatedProducts(); track product.id) {
           <tr>
             <!-- Product Identity -->
             <td class="col-product">
@@ -148,7 +148,7 @@
                 <button
                   type="button"
                   class="btn-secondary"
-                  (click)="searchQuery.set(''); selectedCategory.set('All')"
+                  (click)="updateSearch(''); setCategory('All')"
                 >
                   Clear Filters
                 </button>
@@ -158,6 +158,15 @@
         }
       </tbody>
     </table>
+    <p-paginator
+      [first]="first()"
+      [rows]="rows()"
+      [totalRecords]="filteredProducts().length"
+      [rowsPerPageOptions]="rowsPerPageOptions"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} of {totalRecords}"
+      (onPageChange)="onPageChange($event)"
+    />
   </div>
 
   <!-- DELETE CONFIRMATION POPUP MODAL -->
