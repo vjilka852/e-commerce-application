@@ -5,12 +5,14 @@
       <h1>Products</h1>
       <p class="subtitle">Manage your product catalog, pricing, and stock levels.</p>
     </div>
-    <div class="header-action">
-      <a routerLink="/create" class="btn-primary" id="btn-add-product">
-        <span class="pi pi-plus" aria-hidden="true"></span>
-        <span>Add Product</span>
-      </a>
-    </div>
+    @if (authService.hasPermission('products.create')) {
+      <div class="header-action">
+        <a routerLink="/create" class="btn-primary" id="btn-add-product">
+          <span class="pi pi-plus" aria-hidden="true"></span>
+          <span>Add Product</span>
+        </a>
+      </div>
+    }
   </div>
 
   <!-- Filters & Search Toolbar -->
@@ -116,23 +118,27 @@
             <!-- Actions -->
             <td class="col-actions">
               <div class="action-buttons">
-                <a
-                  [routerLink]="['/edit', product.id]"
-                  class="btn-action btn-edit"
-                  title="Edit Product"
-                >
-                  <span class="pi pi-pencil"></span>
-                  <span>Edit</span>
-                </a>
-                <button
-                  type="button"
-                  class="btn-action btn-delete"
-                  (click)="promptDelete(product)"
-                  title="Delete Product"
-                >
-                  <span class="pi pi-trash"></span>
-                  <span>Delete</span>
-                </button>
+                @if (authService.hasPermission('products.update')) {
+                  <a
+                    [routerLink]="['/edit', product.id]"
+                    class="btn-action btn-edit"
+                    title="Edit Product"
+                  >
+                    <span class="pi pi-pencil"></span>
+                    <span>Edit</span>
+                  </a>
+                }
+                @if (authService.hasPermission('products.delete')) {
+                  <button
+                    type="button"
+                    class="btn-action btn-delete"
+                    (click)="promptDelete(product)"
+                    title="Delete Product"
+                  >
+                    <span class="pi pi-trash"></span>
+                    <span>Delete</span>
+                  </button>
+                }
               </div>
             </td>
           </tr>
@@ -170,15 +176,16 @@
   </div>
 
   <!-- DELETE CONFIRMATION POPUP MODAL -->
-  <p-dialog
-    [(visible)]="isDeleteModalOpen"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [style]="{ width: 'min(90vw, 440px)' }"
-    header="Confirm Delete"
-    (onHide)="cancelDelete()"
-  >
+  @if (authService.hasPermission('products.delete')) {
+    <p-dialog
+      [(visible)]="isDeleteModalOpen"
+      [modal]="true"
+      [draggable]="false"
+      [resizable]="false"
+      [style]="{ width: 'min(90vw, 440px)' }"
+      header="Confirm Delete"
+      (onHide)="cancelDelete()"
+    >
     <div class="confirm-modal-body">
       <div class="confirm-warning-icon">
         <span class="pi pi-exclamation-triangle"></span>
@@ -204,5 +211,6 @@
         </button>
       </div>
     </ng-template>
-  </p-dialog>
+    </p-dialog>
+  }
 </section>

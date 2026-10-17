@@ -36,15 +36,33 @@
       <span class="menu-title">Categories</span>
     </a>
 
+    @if (authService.hasRole(['admin'])) {
+      <span class="menu-label admin-menu-label">Administration</span>
+      <a
+        routerLink="/admin/users"
+        routerLinkActive="active"
+        class="menu-item"
+        id="sidebar-nav-users"
+      >
+        <span class="pi pi-users menu-icon" aria-hidden="true"></span>
+        <span class="menu-title">Users</span>
+      </a>
+      <a
+        routerLink="/admin/roles"
+        routerLinkActive="active"
+        class="menu-item"
+        id="sidebar-nav-roles"
+      >
+        <span class="pi pi-shield menu-icon" aria-hidden="true"></span>
+        <span class="menu-title">Roles &amp; Permissions</span>
+      </a>
+    }
   </nav>
 
   <footer class="sidebar-footer">
-    <div class="client-info-card">
-      <div class="client-row">
-        <span class="flag-icon" aria-hidden="true">🇬🇧</span>
-        <span class="client-label">UK Region (GBP £)</span>
-      </div>
-      <span class="client-sub">VAT 20% Standard</span>
-    </div>
+  <button type="button" class="sidebar-logout-button" (click)="logout()">
+      <span class="pi pi-sign-out" aria-hidden="true"></span>
+      <span>Sign out</span>
+    </button>
   </footer>
 </aside>

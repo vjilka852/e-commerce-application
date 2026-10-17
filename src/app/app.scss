@@ -107,6 +107,12 @@
   gap: 0.55rem;
 }
 
+.user-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .user-avatar {
   width: 2rem;
   height: 2rem;
@@ -124,6 +130,11 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--ind-slate-700);
+}
+
+.user-role {
+  color: var(--ind-slate-500);
+  font-size: 0.68rem;
 }
 
 .page-content {

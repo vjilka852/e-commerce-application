@@ -5,6 +5,7 @@ import { MessageService } from 'primeng/api';
 import { Category } from '../../models/category.model';
 import { CategoryService } from '../../service/category.service';
 import { ProductService } from '../../service/product.service';
+import { AuthService } from '../../service/auth.service';
 import { PaginatorModule } from 'primeng/paginator';
 import { PaginatorState } from 'primeng/types/paginator';
 
@@ -17,6 +18,7 @@ import { PaginatorState } from 'primeng/types/paginator';
 })
 export class CategoryListComponent {
   readonly categoryService = inject(CategoryService);
+  readonly authService = inject(AuthService);
   private readonly productService = inject(ProductService);
   private readonly messageService = inject(MessageService);
 
@@ -54,6 +56,9 @@ export class CategoryListComponent {
   }
 
   promptDelete(category: Category): void {
+    if (!this.authService.hasPermission('categories.delete')) {
+      return;
+    }
     this.categoryToDelete.set(category);
   }
 
@@ -63,7 +68,7 @@ export class CategoryListComponent {
 
   executeDelete(): void {
     const category = this.categoryToDelete();
-    if (!category) {
+    if (!category || !this.authService.hasPermission('categories.delete')) {
       return;
     }
 

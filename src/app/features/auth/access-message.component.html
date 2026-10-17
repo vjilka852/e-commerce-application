@@ -1,0 +1,13 @@
+<main class="access-page">
+  <section class="access-card">
+    <span class="pi pi-lock access-icon" aria-hidden="true"></span>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+    <div class="access-actions">
+      @if (authService.currentUser()?.roleId !== 'client') {
+        <a class="btn-secondary" routerLink="/products">Back to Products</a>
+      }
+      <button type="button" class="btn-primary" (click)="signOut()">Sign out</button>
+    </div>
+  </section>
+</main>

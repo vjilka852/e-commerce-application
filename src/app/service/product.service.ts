@@ -1,6 +1,8 @@
 import { Injectable, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Product, ProductInput } from '../models/product.model';
+import { Product, ProductInput, ProductsApiResponse } from '../models/product.model';
+import { HttpClient } from '@angular/common/http';
+import { enviornment } from '../../environments/environment';
 
 export const INITIAL_INDUSTRIAL_PRODUCTS: Product[] = [
   {
@@ -134,6 +136,14 @@ export class ProductService {
 
   readonly products = this.productsState.asReadonly();
 
+
+  private http = inject(HttpClient);
+  private api = `${enviornment.apiUrl}/products`;
+
+  getProducts() {
+    return this.http.get<ProductsApiResponse>(this.api);
+  }
+
   // Computed Industrial Metrics
   readonly totalProducts = computed(() => this.productsState().length);
   readonly totalValue = computed(() =>
@@ -160,7 +170,7 @@ export class ProductService {
         return this.seedDefaultProducts();
       }
       const parsed = JSON.parse(stored) as Product[];
-      
+
       // If the stored dataset is empty or contains old dummy items like "mobile #1", upgrade to the industrial suite
       const hasOnlyDummy = parsed.length === 0 || parsed.some(p => p.name.toLowerCase().startsWith('mobile'));
       if (hasOnlyDummy) {

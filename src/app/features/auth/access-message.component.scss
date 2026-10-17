@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.access-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--ind-slate-50);
+}
+
+.access-card {
+  width: min(100%, 30rem);
+  padding: 2rem;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 10px;
+  background: var(--app-surface);
+  text-align: center;
+}
+
+.access-icon {
+  color: var(--ind-blue-600);
+  font-size: 1.8rem;
+}
+
+h1 {
+  margin: 0.8rem 0 0.5rem;
+  color: var(--ind-slate-900);
+  font-size: 1.35rem;
+}
+
+p {
+  margin: 0;
+  color: var(--ind-slate-600);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.access-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 1.3rem;
+}

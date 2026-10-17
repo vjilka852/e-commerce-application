@@ -1,0 +1,80 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Users</h1>
+      <p class="subtitle">Manage local accounts and assign roles.</p>
+    </div>
+    <a routerLink="/admin/users/new" class="btn-primary">
+      <span class="pi pi-plus" aria-hidden="true"></span>
+      <span>Add User</span>
+    </a>
+  </header>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th class="actions-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of authService.users(); track user.id) {
+          <tr>
+            <td class="user-name-cell">
+              {{ user.displayName }}
+              @if (user.id === authService.currentUser()?.id) {
+                <span class="current-user-tag">You</span>
+              }
+            </td>
+            <td>{{ user.email }}</td>
+            <td>{{ authService.roleLabel(user.roleId) }}</td>
+            <td>
+              <span class="status-tag" [class.inactive]="!user.active">
+                {{ user.active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="actions-column">
+              <div class="actions">
+                <a [routerLink]="['/admin/users', user.id, 'edit']" class="btn-action btn-edit">
+                  <span class="pi pi-pencil" aria-hidden="true"></span>
+                  <span>Edit</span>
+                </a>
+                <button
+                  type="button"
+                  class="btn-action btn-delete"
+                  [disabled]="user.id === authService.currentUser()?.id"
+                  (click)="confirmDelete(user.id)"
+                >
+                  <span class="pi pi-trash" aria-hidden="true"></span>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-cell">No users have been added.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (userToDelete()) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-user-title" (click)="$event.stopPropagation()">
+        <span class="pi pi-exclamation-triangle warning-icon" aria-hidden="true"></span>
+        <h2 id="delete-user-title">Delete this user?</h2>
+        <p>The account will be removed from this browser and can no longer sign in.</p>
+        <div class="dialog-actions">
+          <button type="button" class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn-danger" (click)="deleteUser()">Delete User</button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

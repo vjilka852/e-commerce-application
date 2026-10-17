@@ -4,10 +4,12 @@
       <h1>Categories</h1>
       <p class="subtitle">Organize products into manageable groups.</p>
     </div>
-    <a routerLink="/categories/create" class="btn-primary">
-      <span class="pi pi-plus" aria-hidden="true"></span>
-      <span>Add Category</span>
-    </a>
+    @if (authService.hasPermission('categories.create')) {
+      <a routerLink="/categories/create" class="btn-primary">
+        <span class="pi pi-plus" aria-hidden="true"></span>
+        <span>Add Category</span>
+      </a>
+    }
   </header>
 
   <div class="toolbar">
@@ -46,25 +48,29 @@
             </td>
             <td class="actions-column">
               <div class="actions">
-                <a
-                  [routerLink]="['/categories', category.id, 'edit']"
-                  class="btn-action btn-edit"
-                  [attr.aria-label]="'Edit ' + category.name"
-                >
-                  <span class="pi pi-pencil" aria-hidden="true"></span>
-                  <span>Edit</span>
-                </a>
-                <button
-                  type="button"
-                  class="btn-action btn-delete"
-                  (click)="promptDelete(category)"
-                  [disabled]="getProductCount(category.name) > 0"
-                  [attr.aria-label]="'Delete ' + category.name"
-                  [title]="getProductCount(category.name) > 0 ? 'Remove or reassign its products before deleting' : 'Delete category'"
-                >
-                  <span class="pi pi-trash" aria-hidden="true"></span>
-                  <span>Delete</span>
-                </button>
+                @if (authService.hasPermission('categories.update')) {
+                  <a
+                    [routerLink]="['/categories', category.id, 'edit']"
+                    class="btn-action btn-edit"
+                    [attr.aria-label]="'Edit ' + category.name"
+                  >
+                    <span class="pi pi-pencil" aria-hidden="true"></span>
+                    <span>Edit</span>
+                  </a>
+                }
+                @if (authService.hasPermission('categories.delete')) {
+                  <button
+                    type="button"
+                    class="btn-action btn-delete"
+                    (click)="promptDelete(category)"
+                    [disabled]="getProductCount(category.name) > 0"
+                    [attr.aria-label]="'Delete ' + category.name"
+                    [title]="getProductCount(category.name) > 0 ? 'Remove or reassign its products before deleting' : 'Delete category'"
+                  >
+                    <span class="pi pi-trash" aria-hidden="true"></span>
+                    <span>Delete</span>
+                  </button>
+                }
               </div>
             </td>
           </tr>
@@ -93,7 +99,7 @@
     />
   </div>
 
-  @if (categoryToDelete(); as category) {
+  @if (authService.hasPermission('categories.delete') && categoryToDelete(); as category) {
     <div class="modal-backdrop" (click)="cancelDelete()">
       <section
         class="confirm-dialog"

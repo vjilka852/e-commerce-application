@@ -1,0 +1,133 @@
+:host {
+  display: block;
+}
+
+.admin-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h1 {
+    margin: 0;
+    color: var(--ind-slate-900);
+    font-size: 1.55rem;
+  }
+}
+
+.subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--ind-slate-500);
+  font-size: 0.88rem;
+}
+
+.table-card {
+  overflow-x: auto;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 8px;
+  background: var(--app-surface);
+}
+
+.user-name-cell {
+  color: var(--ind-slate-900);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.current-user-tag {
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--ind-blue-50);
+  color: var(--ind-blue-700);
+  font-size: 0.68rem;
+}
+
+.status-tag {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: var(--app-success-bg);
+  color: var(--app-success-text);
+  font-size: 0.76rem;
+  font-weight: 600;
+
+  &.inactive {
+    background: var(--ind-slate-100);
+    color: var(--ind-slate-500);
+  }
+}
+
+.actions-column {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.btn-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.empty-cell {
+  padding: 2rem !important;
+  color: var(--ind-slate-500);
+  text-align: center;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 45%);
+}
+
+.confirm-dialog {
+  width: min(100%, 27rem);
+  padding: 1.5rem;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 10px;
+  background: var(--app-surface);
+  text-align: center;
+
+  h2 {
+    color: var(--ind-slate-900);
+    font-size: 1.15rem;
+  }
+
+  p {
+    color: var(--ind-slate-600);
+    font-size: 0.9rem;
+  }
+}
+
+.warning-icon {
+  color: var(--app-warning-text);
+  font-size: 1.75rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 650px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

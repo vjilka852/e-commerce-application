@@ -79,6 +79,10 @@
   padding: 0.5rem 0.65rem 0.35rem;
 }
 
+.admin-menu-label {
+  margin-top: 1rem;
+}
+
 .menu-item {
   display: flex;
   align-items: center;
@@ -138,8 +142,41 @@
 
 /* Sidebar Footer */
 .sidebar-footer {
+  display: grid;
+  gap: 0.6rem;
   padding: 1rem;
   border-top: 1px solid var(--ind-slate-200);
+}
+
+.sidebar-logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 6px;
+  background: var(--app-surface);
+  color: var(--ind-slate-700);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+
+  &:hover {
+    border-color: var(--app-danger-border);
+    background: var(--app-danger-bg);
+    color: var(--app-danger-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ind-blue-600);
+    outline-offset: 2px;
+  }
 }
 
 .client-info-card {
@@ -192,8 +229,7 @@
     padding: 0.35rem 0.5rem;
   }
 
-  .menu-label,
-  .sidebar-footer {
+  .menu-label {
     display: none;
   }
 

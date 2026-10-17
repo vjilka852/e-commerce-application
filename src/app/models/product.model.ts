@@ -1,19 +1,56 @@
-export type StockStatus = 'In Stock' | 'Low Stock' | 'Made to Order';
+export type ProductInput = Omit<Product, 'id'>;
+
+export type ProductAvailabilityStatus = 'In Stock' | 'Low Stock' | 'Out of Stock';
 
 export interface Product {
   id: number;
-  name: string;
+  title: string;
   description: string;
   category: string;
-  imageUrl: string;
   price: number;
-  sku?: string;
-  stockStatus?: StockStatus;
-  stockCount?: number;
-  leadTime?: string;
-  specifications?: string;
-  manufacturer?: string;
-  isUkcaCertified?: boolean;
+  discountPercentage: number;
+  rating: number;
+  stock: number;
+  tags: string[];
+  brand: string;
+  sku: string;
+  weight: number;
+  dimensions: ProductDimensions;
+  warrantyInformation: string;
+  shippingInformation: string;
+  availabilityStatus: ProductAvailabilityStatus;
+  reviews: ProductReview[];
+  returnPolicy: string;
+  minimumOrderQuantity: number;
+  meta: ProductMeta;
+  thumbnail: string;
+  images: string[];
 }
 
-export type ProductInput = Omit<Product, 'id'>;
+export interface ProductsApiResponse {
+  products: Product[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+export interface ProductDimensions {
+  width: number;
+  height: number;
+  depth: number;
+}
+
+export interface ProductReview {
+  rating: number;
+  comment: string;
+  date: string;
+  reviewerName: string;
+  reviewerEmail: string;
+}
+
+export interface ProductMeta {
+  createdAt: string;
+  updatedAt: string;
+  barcode: string;
+  qrCode: string;
+}

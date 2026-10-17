@@ -2,12 +2,15 @@ import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { routes } from './app.routes';
 
 describe('App', () => {
   beforeEach(async () => {
+    localStorage.removeItem('ecommerce_users');
+    localStorage.removeItem('ecommerce_session');
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), MessageService],
+      providers: [provideRouter(routes), MessageService],
     }).compileComponents();
   });
 
@@ -17,10 +20,12 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the storefront navigation', async () => {
+  it('should show the sign-in page when no session exists', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
+    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('#sidebar-nav-categories')?.textContent).toContain('Categories');
+    expect(compiled.querySelector('#login-title')?.textContent).toContain('Sign in');
+    expect(compiled.querySelector('.sidebar-container')).toBeNull();
   });
 });

@@ -1,0 +1,95 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div>
+      <h1>Roles &amp; Permissions</h1>
+      <p class="subtitle">Define which product and category actions each role can perform.</p>
+    </div>
+    <a routerLink="/admin/roles/new" class="btn-primary">
+      <span class="pi pi-plus" aria-hidden="true"></span>
+      <span>Add Role</span>
+    </a>
+  </header>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Description</th>
+          <th>Permissions</th>
+          <th>Users</th>
+          <th class="actions-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (role of authService.roles(); track role.id) {
+          <tr>
+            <td class="role-name">
+              {{ role.name }}
+              @if (role.protected) {
+                <span class="protected-tag">Protected</span>
+              }
+            </td>
+            <td class="description">{{ role.description }}</td>
+            <td>
+              <div class="permission-summary">
+                @for (permission of role.permissions; track permission) {
+                  <span>{{ authService.permissionOptions.find(option => option.id === permission)?.label }}</span>
+                } @empty {
+                  <span>No catalog access</span>
+                }
+              </div>
+            </td>
+            <td>{{ assignedUserCount(role.id) }}</td>
+            <td class="actions-column">
+              <div class="actions">
+                @if (role.protected) {
+                  <span class="protected-action">Protected</span>
+                } @else {
+                  <a
+                    [routerLink]="['/admin/roles', role.id, 'edit']"
+                    class="btn-action btn-edit"
+                    [attr.aria-label]="'Edit ' + role.name"
+                  >
+                    <span class="pi pi-pencil" aria-hidden="true"></span>
+                    <span>Edit</span>
+                  </a>
+                }
+                @if (!role.protected) {
+                  <button
+                    type="button"
+                    class="btn-action btn-delete"
+                    [disabled]="assignedUserCount(role.id) > 0"
+                    [title]="assignedUserCount(role.id) > 0 ? 'Reassign users before deleting this role' : 'Delete role'"
+                    (click)="confirmDelete(role.id)"
+                  >
+                    <span class="pi pi-trash" aria-hidden="true"></span>
+                    <span>Delete</span>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-cell">No roles have been configured.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (roleToDelete()) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-role-title" (click)="$event.stopPropagation()">
+        <span class="pi pi-exclamation-triangle warning-icon" aria-hidden="true"></span>
+        <h2 id="delete-role-title">Delete this role?</h2>
+        <p>This cannot be undone. Roles assigned to users must be reassigned first.</p>
+        <div class="dialog-actions">
+          <button type="button" class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn-danger" (click)="deleteRole()">Delete Role</button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

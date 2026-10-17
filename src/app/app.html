@@ -1,41 +1,48 @@
 <p-toast position="top-right"></p-toast>
 
-<div class="app-layout">
-  <!-- Dedicated Standalone Sidebar Component -->
-  <app-sidebar></app-sidebar>
+@if (authService.currentUser(); as user) {
+  @if (user.roleId === 'client') {
+    <router-outlet></router-outlet>
+  } @else {
+    <div class="app-layout">
+      <app-sidebar></app-sidebar>
 
-  <!-- Main Content Wrapper -->
-  <div class="main-shell">
-    <!-- Clean Minimalist Top Header -->
-    <header class="top-navbar">
-      <div class="navbar-left">
-        <span class="page-context">Industrial Storefront</span>
-      </div>
-      <div class="navbar-right">
-        <button
-          type="button"
-          class="theme-toggle"
-          (click)="toggleTheme()"
-          [attr.aria-label]="themeService.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
-          [title]="themeService.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
-        >
-          <span
-            class="pi"
-            [class.pi-sun]="themeService.isDark()"
-            [class.pi-moon]="!themeService.isDark()"
-            aria-hidden="true"
-          ></span>
-        </button>
-        <div class="user-profile">
-          <div class="user-avatar">AC</div>
-          <span class="user-name">Client Admin</span>
-        </div>
-      </div>
-    </header>
+      <div class="main-shell">
+        <header class="top-navbar">
+          <div class="navbar-left">
+            <span class="page-context">Industrial Storefront</span>
+          </div>
+          <div class="navbar-right">
+            <button
+              type="button"
+              class="theme-toggle"
+              (click)="toggleTheme()"
+              [attr.aria-label]="themeService.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+              [title]="themeService.isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+            >
+              <span
+                class="pi"
+                [class.pi-sun]="themeService.isDark()"
+                [class.pi-moon]="!themeService.isDark()"
+                aria-hidden="true"
+              ></span>
+            </button>
+            <div class="user-profile">
+              <div class="user-avatar" aria-hidden="true">{{ user.displayName.slice(0, 1).toUpperCase() }}</div>
+              <div class="user-identity">
+                <span class="user-name">{{ user.displayName }}</span>
+                <span class="user-role">{{ authService.roleLabel(user.roleId) }}</span>
+              </div>
+            </div>
+          </div>
+        </header>
 
-    <!-- Primary Page Content Area -->
-    <main class="page-content">
-      <router-outlet></router-outlet>
-    </main>
-  </div>
-</div>
+        <main class="page-content">
+          <router-outlet></router-outlet>
+        </main>
+      </div>
+    </div>
+  }
+} @else {
+  <router-outlet></router-outlet>
+}

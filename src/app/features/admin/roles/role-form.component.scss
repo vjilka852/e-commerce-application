@@ -1,0 +1,138 @@
+:host {
+  display: block;
+}
+
+.admin-form-page {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 48rem);
+}
+
+.form-header {
+  display: grid;
+  gap: 0.4rem;
+
+  h1 {
+    margin: 0.25rem 0 0;
+    color: var(--ind-slate-900);
+    font-size: 1.55rem;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  color: var(--ind-slate-500);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.subtitle,
+.form-hint {
+  margin: 0;
+  color: var(--ind-slate-500);
+  font-size: 0.84rem;
+}
+
+.form-card {
+  display: grid;
+  gap: 1.1rem;
+  padding: clamp(1.2rem, 4vw, 1.75rem);
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 8px;
+  background: var(--app-surface);
+}
+
+.form-group {
+  display: grid;
+  gap: 0.4rem;
+
+  label {
+    color: var(--ind-slate-700);
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--ind-slate-300);
+    border-radius: 6px;
+    background: var(--app-surface);
+    color: var(--ind-slate-800);
+    font: inherit;
+    font-size: 0.86rem;
+  }
+}
+
+.required,
+.field-error {
+  color: var(--app-danger-text);
+}
+
+.field-error {
+  font-size: 0.76rem;
+}
+
+.permission-fieldset {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 8px;
+
+  legend {
+    padding: 0 0.35rem;
+    color: var(--ind-slate-800);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+}
+
+.permission-group {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ind-slate-100);
+
+  h2 {
+    margin: 0;
+    color: var(--ind-slate-700);
+    font-size: 0.83rem;
+  }
+}
+
+.permission-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.55rem;
+}
+
+.permission-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ind-slate-700);
+  font-size: 0.82rem;
+}
+
+.error-banner {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--app-danger-border);
+  border-radius: 6px;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
+  font-size: 0.84rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}

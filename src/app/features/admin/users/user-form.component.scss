@@ -1,0 +1,128 @@
+:host {
+  display: block;
+}
+
+.admin-form-page {
+  display: grid;
+  gap: 1.25rem;
+  width: min(100%, 44rem);
+}
+
+.form-header {
+  display: grid;
+  gap: 0.4rem;
+
+  h1 {
+    margin: 0.25rem 0 0;
+    color: var(--ind-slate-900);
+    font-size: 1.55rem;
+  }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  color: var(--ind-slate-500);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ind-blue-700);
+  }
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--ind-slate-500);
+  font-size: 0.88rem;
+}
+
+.form-card {
+  display: grid;
+  gap: 1.1rem;
+  padding: clamp(1.2rem, 4vw, 1.75rem);
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 8px;
+  background: var(--app-surface);
+}
+
+.form-group {
+  display: grid;
+  gap: 0.4rem;
+
+  label {
+    color: var(--ind-slate-700);
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  input,
+  select {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--ind-slate-300);
+    border-radius: 6px;
+    background: var(--app-surface);
+    color: var(--ind-slate-800);
+    font: inherit;
+    font-size: 0.86rem;
+  }
+}
+
+.required,
+.field-error {
+  color: var(--app-danger-text);
+}
+
+.field-error,
+.form-hint {
+  font-size: 0.76rem;
+}
+
+.active-control {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid var(--ind-slate-200);
+  border-radius: 7px;
+  background: var(--app-surface-muted);
+
+  span {
+    display: grid;
+    gap: 0.2rem;
+    color: var(--ind-slate-700);
+    font-size: 0.84rem;
+  }
+
+  small,
+  input:disabled + span {
+    color: var(--ind-slate-500);
+  }
+}
+
+.form-hint {
+  margin: -0.8rem 0 0;
+  color: var(--ind-slate-500);
+}
+
+.error-banner {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--app-danger-border);
+  border-radius: 6px;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
+  font-size: 0.84rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}

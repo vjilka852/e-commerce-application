@@ -12,6 +12,7 @@ import { CategoryService } from '../../service/category.service';
 import { Product } from '../../models/product.model';
 import { PaginatorModule } from 'primeng/paginator';
 import { PaginatorState } from 'primeng/types/paginator';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-product-list',
@@ -32,6 +33,7 @@ import { PaginatorState } from 'primeng/types/paginator';
 })
 export class ProductListComponent {
   readonly productService = inject(ProductService);
+  readonly authService = inject(AuthService);
   private readonly categoryService = inject(CategoryService);
   private readonly messageService = inject(MessageService);
 
@@ -106,6 +108,9 @@ export class ProductListComponent {
 
   // Delete Confirmation Popup Handlers
   promptDelete(product: Product): void {
+    if (!this.authService.hasPermission('products.delete')) {
+      return;
+    }
     this.productToDelete.set(product);
     this.isDeleteModalOpen.set(true);
   }
@@ -117,15 +122,17 @@ export class ProductListComponent {
 
   executeDelete(): void {
     const target = this.productToDelete();
-    if (target) {
-      this.productService.deleteProduct(target.id);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Product Deleted',
-        detail: `"${target.name}" was successfully removed.`,
-        life: 3000
-      });
+    if (!target || !this.authService.hasPermission('products.delete')) {
+      return;
     }
+
+    this.productService.deleteProduct(target.id);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Product Deleted',
+      detail: `"${target.name}" was successfully removed.`,
+      life: 3000
+    });
     this.cancelDelete();
   }
 }
