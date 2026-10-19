@@ -2,13 +2,16 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { MessageService } from 'primeng/api';
 import { ProductService } from '../../service/product.service';
 import { CategoryService } from '../../service/category.service';
-import { StockStatus } from '../../models/product.model';
+import { ApiProduct, StockStatus } from '../../models/product.model';
+import { firstValueFrom } from 'rxjs';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 
 @Component({
   selector: 'app-product-add-edit-form',
@@ -19,7 +22,8 @@ import { StockStatus } from '../../models/product.model';
     RouterLink,
     ButtonModule,
     InputTextModule,
-    TextareaModule
+    TextareaModule,
+    LoaderComponent
   ],
   templateUrl: './product-add-edit-form.component.html',
   styleUrl: './product-add-edit-form.component.scss',
@@ -36,6 +40,7 @@ export class ProductAddEditFormComponent implements OnInit {
   productId: number | null = null;
   imageError = '';
   submitError = '';
+  isSubmitting = false;
 
   readonly categories = this.categoryService.categories;
 
@@ -59,6 +64,19 @@ export class ProductAddEditFormComponent implements OnInit {
 
   get imagePreview(): string {
     return this.productForm.controls.imageUrl.value;
+  }
+
+  get isApiProduct(): boolean {
+    return this.productId !== null
+      && this.productService.getProductById(this.productId)?.apiProduct !== undefined;
+  }
+
+  get currencyLabel(): string {
+    return this.isApiProduct ? 'USD $' : 'GBP £';
+  }
+
+  get currencySymbol(): string {
+    return this.isApiProduct ? '$' : '£';
   }
 
   onImageSelected(event: Event): void {
@@ -127,8 +145,11 @@ export class ProductAddEditFormComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.submitError = '';
+    if (this.isSubmitting) {
+      return;
+    }
     if (this.imageError) {
       return;
     }
@@ -150,13 +171,33 @@ export class ProductAddEditFormComponent implements OnInit {
       imageUrl: val.imageUrl || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80'
     };
 
+    this.isSubmitting = true;
     try {
       if (this.isEditMode && this.productId !== null) {
-        const updated = this.productService.updateProduct(this.productId, productPayload);
-        if (!updated) {
+        const existingProduct = this.productService.getProductById(this.productId);
+        if (!existingProduct) {
           void this.router.navigate(['/products']);
           return;
         }
+
+        if (existingProduct.apiProduct) {
+          const apiChanges: Partial<ApiProduct> = {
+            title: productPayload.name,
+            description: productPayload.description,
+            category: productPayload.category,
+            price: productPayload.price,
+            sku: productPayload.sku,
+            thumbnail: productPayload.imageUrl,
+            availabilityStatus: productPayload.stockStatus === 'Made to Order'
+              ? existingProduct.apiProduct.availabilityStatus
+              : productPayload.stockStatus
+          };
+          await firstValueFrom(this.productService.updateApiProduct(this.productId, apiChanges));
+        } else if (!this.productService.updateProduct(this.productId, productPayload)) {
+          void this.router.navigate(['/products']);
+          return;
+        }
+
         this.messageService.add({
           severity: 'success',
           summary: 'Product Updated',
@@ -173,9 +214,16 @@ export class ProductAddEditFormComponent implements OnInit {
         });
       }
     } catch (error) {
-      console.error('Failed to save product', error);
-      this.submitError = 'Could not save product. Please try again.';
+      this.submitError = error instanceof HttpErrorResponse
+        ? error.status
+          ? `The product API returned an error (${error.status}). Your changes were not saved.`
+          : 'Could not connect to the product API. Your changes were not saved.'
+        : error instanceof Error
+          ? error.message
+          : 'Could not save product. Please try again.';
       return;
+    } finally {
+      this.isSubmitting = false;
     }
 
     void this.router.navigate(['/products']);

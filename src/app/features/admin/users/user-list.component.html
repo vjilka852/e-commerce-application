@@ -2,19 +2,79 @@
   <header class="page-header">
     <div>
       <h1>Users</h1>
-      <p class="subtitle">Manage local accounts and assign roles.</p>
+      <p class="subtitle">Manage the users in the system</p>
     </div>
-    <a routerLink="/admin/users/new" class="btn-primary">
-      <span class="pi pi-plus" aria-hidden="true"></span>
-      <span>Add User</span>
-    </a>
+    <div class="header-actions">
+      <!-- <a routerLink="/admin/users/new" class="btn-secondary">Add Local User</a> -->
+      <a routerLink="/admin/users/api/new" class="btn-primary">
+        <span class="pi pi-plus" aria-hidden="true"></span>
+        <span>Add User</span>
+      </a>
+    </div>
   </header>
+
+  @if (loadError()) {
+    <div class="load-error" role="alert">
+      <span>{{ loadError() }}</span>
+      <button type="button" class="btn-secondary" (click)="loadUsers(true)">Try again</button>
+    </div>
+  }
+
+  <div class="table-toolbar">
+    <div class="search-field">
+      <span class="pi pi-search search-icon" aria-hidden="true"></span>
+      <input
+        type="text"
+        placeholder="Search users..."
+        aria-label="Search users"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="updateSearch($event)"
+      />
+      @if (isSearching()) {
+        <app-loader message="Searching users" [inline]="true" />
+      }
+      @if (searchQuery()) {
+        <button
+          type="button"
+          class="clear-btn"
+          (click)="updateSearch('')"
+          aria-label="Clear search"
+        >
+          <span class="pi pi-times"></span>
+        </button>
+      }
+    </div>
+
+    <div class="search-options">
+      <label for="userSearchField">Search field</label>
+      <select
+        id="userSearchField"
+        [ngModel]="selectedSearchField()"
+        (ngModelChange)="updateSearchField($event)"
+      >
+        @for (field of searchFields; track field.key) {
+          <option [value]="field.key">{{ field.label }}</option>
+        }
+      </select>
+      <span class="item-count">
+        Showing <strong>{{ filteredUsers().length }}</strong> users
+      </span>
+    </div>
+  </div>
+
+  @if (searchError()) {
+    <div class="load-error" role="alert">
+      <span>{{ searchError() }}</span>
+      <button type="button" class="btn-secondary" (click)="updateSearch(searchQuery())">Try again</button>
+    </div>
+  }
 
   <div class="table-card">
     <table class="data-table">
       <thead>
         <tr>
           <th>Name</th>
+          <th>Username</th>
           <th>Email</th>
           <th>Role</th>
           <th>Status</th>
@@ -22,24 +82,35 @@
         </tr>
       </thead>
       <tbody>
-        @for (user of authService.users(); track user.id) {
+        @for (user of paginatedUsers(); track user.id) {
           <tr>
             <td class="user-name-cell">
               {{ user.displayName }}
-              @if (user.id === authService.currentUser()?.id) {
-                <span class="current-user-tag">You</span>
-              }
             </td>
+            <td>{{ user.username }}</td>
             <td>{{ user.email }}</td>
-            <td>{{ authService.roleLabel(user.roleId) }}</td>
+            <td>{{ user.roleName }}</td>
             <td>
               <span class="status-tag" [class.inactive]="!user.active">
-                {{ user.active ? 'Active' : 'Inactive' }}
+                {{ user.source === 'api' ? 'DummyJSON' : user.active ? 'Active' : 'Inactive' }}
               </span>
             </td>
             <td class="actions-column">
               <div class="actions">
-                <a [routerLink]="['/admin/users', user.id, 'edit']" class="btn-action btn-edit">
+                <button
+                  type="button"
+                  class="btn-action btn-edit"
+                  (click)="viewUser(user)"
+                  [attr.aria-label]="'View ' + user.displayName"
+                >
+                  <span class="pi pi-eye" aria-hidden="true"></span>
+                  <span>View</span>
+                </button>
+                <a
+                  [routerLink]="['/admin/users', user.id, 'edit']"
+                  class="btn-action btn-edit"
+                  [attr.aria-label]="'Edit ' + user.displayName"
+                >
                   <span class="pi pi-pencil" aria-hidden="true"></span>
                   <span>Edit</span>
                 </a>
@@ -47,7 +118,8 @@
                   type="button"
                   class="btn-action btn-delete"
                   [disabled]="user.id === authService.currentUser()?.id"
-                  (click)="confirmDelete(user.id)"
+                  (click)="confirmDelete(user)"
+                  [attr.aria-label]="'Delete ' + user.displayName"
                 >
                   <span class="pi pi-trash" aria-hidden="true"></span>
                   <span>Delete</span>
@@ -56,20 +128,182 @@
             </td>
           </tr>
         } @empty {
-          <tr>
-            <td colspan="5" class="empty-cell">No users have been added.</td>
-          </tr>
+          @if (!isLoading()) {
+            <tr>
+              <td colspan="6" class="empty-cell">
+                {{ loadError() ? 'Could not load API users. Local accounts remain available.' : 'No users have been added.' }}
+              </td>
+            </tr>
+          }
         }
       </tbody>
     </table>
+    @if (isLoading()) {
+      <app-loader message="Loading users…" [compact]="true" />
+    }
+    <p-paginator
+      [first]="first()"
+      [rows]="rows()"
+      [totalRecords]="filteredUsers().length"
+      [rowsPerPageOptions]="rowsPerPageOptions"
+      appendTo="body"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="{first}–{last} of {totalRecords}"
+      (onPageChange)="onPageChange($event)"
+    />
   </div>
+
+  <p-dialog
+    [visible]="isDetailsOpen()"
+    (visibleChange)="isDetailsOpen.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: 'min(96vw, 920px)' }"
+    [header]="selectedApiUser() ? selectedApiUser()!.firstName + ' ' + selectedApiUser()!.lastName : selectedLocalUser()?.displayName ?? 'User details'"
+    styleClass="user-details-dialog"
+  >
+    @if (isDetailsLoading()) {
+      <app-loader message="Loading full user profile…" [compact]="true" />
+    } @else if (detailsError()) {
+      <div class="details-error" role="alert">
+        <p>{{ detailsError() }}</p>
+        @if (selectedDetailsTarget(); as user) {
+          <button type="button" class="btn-secondary" (click)="viewUser(user)">Try again</button>
+        }
+      </div>
+    } @else if (selectedApiUser(); as user) {
+      <div class="user-detail-content">
+        <header class="user-detail-hero">
+          @if (user.image) {
+            <img class="user-detail-avatar" [src]="user.image" [alt]="user.firstName + ' ' + user.lastName">
+          } @else {
+            <span class="user-detail-avatar avatar-fallback" aria-hidden="true">
+              {{ user.firstName.slice(0, 1) }}{{ user.lastName.slice(0, 1) }}
+            </span>
+          }
+          <div class="user-detail-summary">
+            <span class="user-role-badge">{{ user.role }}</span>
+            <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+            <p>{{ user.email }} <span aria-hidden="true">·</span> {{ '@' + user.username }}</p>
+          </div>
+        </header>
+
+        <section class="user-detail-section">
+          <h3>Personal information</h3>
+          <dl class="user-detail-grid">
+            <div><dt>User ID</dt><dd>{{ user.id }}</dd></div>
+            <div><dt>Maiden name</dt><dd>{{ user.maidenName || '—' }}</dd></div>
+            <div><dt>Age</dt><dd>{{ user.age ?? '—' }}</dd></div>
+            <div><dt>Gender</dt><dd>{{ user.gender || '—' }}</dd></div>
+            <div><dt>Birth date</dt><dd>{{ user.birthDate || '—' }}</dd></div>
+            <div><dt>Blood group</dt><dd>{{ user.bloodGroup || '—' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="user-detail-section">
+          <h3>Contact & address</h3>
+          <dl class="user-detail-grid">
+            <div><dt>Phone</dt><dd>{{ user.phone || '—' }}</dd></div>
+            <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+            <div><dt>Address</dt><dd>{{ user.address?.address || '—' }}</dd></div>
+            <div><dt>City</dt><dd>{{ user.address?.city || '—' }}</dd></div>
+            <div><dt>State</dt><dd>{{ user.address?.state || '—' }} {{ user.address?.stateCode ? '(' + user.address?.stateCode + ')' : '' }}</dd></div>
+            <div><dt>Postal code</dt><dd>{{ user.address?.postalCode || '—' }}</dd></div>
+            <div><dt>Country</dt><dd>{{ user.address?.country || '—' }}</dd></div>
+            <div>
+              <dt>Coordinates</dt>
+              <dd>
+                @if (user.address; as address) {
+                  {{ address.coordinates.lat }}, {{ address.coordinates.lng }}
+                } @else {
+                  —
+                }
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="user-detail-section">
+          <h3>Physical profile</h3>
+          <dl class="user-detail-grid">
+            <div><dt>Height</dt><dd>{{ user.height ?? '—' }}{{ user.height !== undefined ? ' cm' : '' }}</dd></div>
+            <div><dt>Weight</dt><dd>{{ user.weight ?? '—' }}{{ user.weight !== undefined ? ' kg' : '' }}</dd></div>
+            <div><dt>Eye color</dt><dd>{{ user.eyeColor || '—' }}</dd></div>
+            <div><dt>Hair color</dt><dd>{{ user.hair?.color || '—' }}</dd></div>
+            <div><dt>Hair type</dt><dd>{{ user.hair?.type || '—' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="user-detail-section">
+          <h3>Work & education</h3>
+          <dl class="user-detail-grid">
+            <div><dt>University</dt><dd>{{ user.university || '—' }}</dd></div>
+            <div><dt>Company</dt><dd>{{ user.company?.name || '—' }}</dd></div>
+            <div><dt>Job title</dt><dd>{{ user.company?.title || '—' }}</dd></div>
+            <div><dt>Department</dt><dd>{{ user.company?.department || '—' }}</dd></div>
+            <div><dt>Employer address</dt><dd>{{ user.company?.address?.address || '—' }}</dd></div>
+            <div><dt>Employer city</dt><dd>{{ user.company?.address?.city || '—' }}</dd></div>
+            <div><dt>Employer state</dt><dd>{{ user.company?.address?.state || '—' }}</dd></div>
+            <div><dt>Employer country</dt><dd>{{ user.company?.address?.country || '—' }}</dd></div>
+            <div><dt>Employer coordinates</dt><dd>{{ user.company?.address?.coordinates?.lat ?? '—' }}, {{ user.company?.address?.coordinates?.lng ?? '—' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="user-detail-section">
+          <h3>Financial & identity information</h3>
+          <p class="sensitive-data-note">Sensitive values are masked for privacy. Passwords are never displayed.</p>
+          <dl class="user-detail-grid">
+            <div><dt>Card type</dt><dd>{{ user.bank?.cardType || '—' }}</dd></div>
+            <div><dt>Card expiry</dt><dd>{{ user.bank?.cardExpire || '—' }}</dd></div>
+            <div><dt>Card number</dt><dd>{{ user.bank?.cardNumber || '—' }}</dd></div>
+            <div><dt>Currency</dt><dd>{{ user.bank?.currency || '—' }}</dd></div>
+            <div><dt>IBAN</dt><dd>{{ user.bank?.iban || '—' }}</dd></div>
+            <div><dt>Tax ID (EIN)</dt><dd>{{ user.ein || '—' }}</dd></div>
+            <div><dt>SSN</dt><dd>{{ user.ssn || '—' }}</dd></div>
+            <div><dt>Crypto coin</dt><dd>{{ user.crypto?.coin || '—' }}</dd></div>
+            <div><dt>Wallet</dt><dd>{{ user.crypto?.wallet || '—' }}</dd></div>
+            <div><dt>Network</dt><dd>{{ user.crypto?.network || '—' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="user-detail-section">
+          <h3>Network & device</h3>
+          <dl class="user-detail-grid">
+            <div><dt>IP address</dt><dd>{{ user.ip || '—' }}</dd></div>
+            <div><dt>MAC address</dt><dd>{{ user.macAddress || '—' }}</dd></div>
+            <div class="wide-detail"><dt>User agent</dt><dd>{{ user.userAgent || '—' }}</dd></div>
+          </dl>
+        </section>
+      </div>
+    } @else if (selectedLocalUser(); as user) {
+      <div class="user-detail-content">
+        <section class="user-detail-section">
+          <h3>Account information</h3>
+          <dl class="user-detail-grid">
+            <div><dt>Name</dt><dd>{{ user.displayName }}</dd></div>
+            <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+            <div><dt>Application role</dt><dd>{{ user.roleName }}</dd></div>
+            <div><dt>Status</dt><dd>{{ user.active ? 'Active' : 'Inactive' }}</dd></div>
+            <div><dt>Account source</dt><dd>Local browser account</dd></div>
+          </dl>
+        </section>
+      </div>
+    }
+  </p-dialog>
 
   @if (userToDelete()) {
     <div class="modal-backdrop" (click)="cancelDelete()">
       <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-user-title" (click)="$event.stopPropagation()">
         <span class="pi pi-exclamation-triangle warning-icon" aria-hidden="true"></span>
         <h2 id="delete-user-title">Delete this user?</h2>
-        <p>The account will be removed from this browser and can no longer sign in.</p>
+        <p>
+          @if (userToDelete()?.source === 'api') {
+            DummyJSON will simulate deleting <strong>{{ userToDelete()?.name }}</strong>. The sample user may return after refresh.
+          } @else {
+            <strong>{{ userToDelete()?.name }}</strong> will be removed from this browser and can no longer sign in.
+          }
+        </p>
         <div class="dialog-actions">
           <button type="button" class="btn-secondary" (click)="cancelDelete()">Cancel</button>
           <button type="button" class="btn-danger" (click)="deleteUser()">Delete User</button>

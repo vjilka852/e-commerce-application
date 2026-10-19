@@ -251,7 +251,7 @@ interface ApiResponse<T> {
 
 ### Local Authentication and Roles
 
-This storefront currently uses browser-local demo authentication. It has no public registration:
+This storefront supports browser-local demo accounts and DummyJSON's public authentication API. It has no public registration:
 
 | Role | Demo email | Demo password | Current access |
 |---|---|---|---|
@@ -259,9 +259,13 @@ This storefront currently uses browser-local demo authentication. It has no publ
 | Internal staff | `staff@ecommerce.local` | `Staff123!` | View, create, and edit products and categories |
 | Client / Customer | `customer@ecommerce.local` | `Customer123!` | Sign in; purchasing, quotations, addresses, and order tracking are not available yet |
 
-User records (with PBKDF2 password hashes) are initialized in the `ecommerce_users` localStorage entry, and role definitions and product/category permissions are stored in `ecommerce_roles`. The active user ID is persisted in `ecommerce_session`, so a refresh keeps the user signed in until they sign out. Admins can create, edit, deactivate, and delete accounts; create, edit, and delete custom roles; and select product/category permissions for each role. The built-in Admin role and the last active Admin account are protected. Route guards and the UI enforce role and permission assignments, while user/role management remains restricted to the Admin role.
+For API authentication, enter the DummyJSON username and password (for example, `emilys` / `emilyspass`). API-authenticated users receive the least-privileged Client role because DummyJSON's login response does not provide application roles or permissions.
 
-**This is not production authentication or a security boundary.** Browser localStorage and client-side guards can be inspected or modified by the person using the browser. Demo credentials are public and must not be used for real accounts or sensitive data. Production use requires a server-side identity provider, credential verification, authorization, and server-enforced permissions.
+Local user records (with PBKDF2 password hashes) are initialized in the `ecommerce_users` localStorage entry, and role definitions and product/category permissions are stored in `ecommerce_roles`. The active user ID is persisted in `ecommerce_session`, so a refresh keeps the user signed in until they sign out. DummyJSON access and refresh tokens are also persisted in browser localStorage for session restoration. Admins can create, edit, deactivate, and delete local accounts; create, edit, and delete custom roles; and select product/category permissions for each role. The built-in Admin role and the last active Admin account are protected. Route guards and the UI enforce role and permission assignments, while user/role management remains restricted to the Admin role.
+
+The Admin Users page also lists DummyJSON users and supports API-backed create (`POST /users/add`), edit (`PATCH /users/{id}`), delete (`DELETE /users/{id}`), and search. General searches use `/users/search?q=...`; select a specific field such as **Hair color** to use `/users/filter?key=hair.color&value=...`. Use **View** to inspect the full available profile, including address, company, education, and device details. Passwords are never shown; SSN, tax, card, IBAN, and wallet values are masked. DummyJSON simulates write operations; changes are reflected during the current app session but are not persisted by the service. API user profile roles (`admin`, `moderator`, `user`) are data from DummyJSON and do not grant this app's local permissions. API user responses are projected to the fields used by the interface and sensitive profile values are redacted in app state.
+
+**This is not production authentication or a security boundary.** Browser localStorage and client-side guards can be inspected or modified by the person using the browser. Demo credentials are public and must not be used for real accounts or sensitive data. Production use requires a server-side identity provider, secure token handling, credential verification, authorization, and server-enforced permissions.
 - Input validation and sanitization
 - CORS configuration on backend
 - No sensitive data in client-side code

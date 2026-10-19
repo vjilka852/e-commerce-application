@@ -1,0 +1,45 @@
+:host {
+  display: block;
+}
+
+:host(.inline-host) {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 8rem;
+  padding: 1.25rem;
+  color: var(--ind-slate-600);
+  font-size: 0.88rem;
+
+  > .pi {
+    color: var(--ind-blue-600);
+    font-size: 1.1rem;
+  }
+}
+
+.loader.compact {
+  min-height: 0;
+  padding: 0.75rem;
+  font-size: 0.82rem;
+
+  > .pi {
+    font-size: 0.9rem;
+  }
+}
+
+.loader-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+
+  > .pi {
+    font-size: 0.95em;
+  }
+}

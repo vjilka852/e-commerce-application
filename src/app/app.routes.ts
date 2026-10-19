@@ -81,9 +81,23 @@ export const routes: Routes = [
       .then(module => module.UserListComponent)
   },
   {
+    path: 'admin/carts',
+    canActivate: [authenticatedGuard, permissionGuard],
+    data: { roles: ['admin'] },
+    loadComponent: () => import('./features/admin/carts/cart-list.component')
+      .then(module => module.CartListComponent)
+  },
+  {
     path: 'admin/users/new',
     canActivate: [authenticatedGuard, permissionGuard],
     data: { roles: ['admin'] },
+    loadComponent: () => import('./features/admin/users/user-form.component')
+      .then(module => module.UserFormComponent)
+  },
+  {
+    path: 'admin/users/api/new',
+    canActivate: [authenticatedGuard, permissionGuard],
+    data: { roles: ['admin'], apiUser: true },
     loadComponent: () => import('./features/admin/users/user-form.component')
       .then(module => module.UserFormComponent)
   },
@@ -115,5 +129,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/roles/role-form.component')
       .then(module => module.RoleFormComponent)
   },
+  { path: 'cart', redirectTo: 'admin/carts', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
 ];

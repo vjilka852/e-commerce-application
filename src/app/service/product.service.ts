@@ -1,115 +1,21 @@
 import { Injectable, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Product, ProductInput, ProductsApiResponse } from '../models/product.model';
+import {
+  ApiProduct,
+  ApiProductDeleteResponse,
+  ApiProductUpdateResponse,
+  Product,
+  ProductInput,
+  ProductsApiResponse,
+  StockStatus
+} from '../models/product.model';
 import { HttpClient } from '@angular/common/http';
 import { enviornment } from '../../environments/environment';
+import { map, Observable, tap } from 'rxjs';
 
 export const INITIAL_INDUSTRIAL_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: 'Hydraulic Variable Piston Pump 250 Bar',
-    description: 'Heavy-duty variable displacement axial piston pump designed for continuous industrial hydraulic press systems and power units.',
-    category: 'Hydraulics',
-    price: 1450.00,
-    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-HYD-4029',
-    stockStatus: 'In Stock',
-    stockCount: 28,
-    leadTime: 'Next-Day UK Dispatch',
-    specifications: '250 Bar | 45 L/min | Flanged ISO 3019/2 | Cast Iron Housing',
-    manufacturer: 'Apex Fluid Power Ltd (Sheffield)',
-    isUkcaCertified: true
-  },
-  {
-    id: 2,
-    name: 'UKCA Industrial Optical Safety Light Curtain',
-    description: 'High-resolution perimeter finger & hand protection optoelectronic safety barrier with dual OSSD PNP solid-state outputs.',
-    category: 'Safety & PPE',
-    price: 820.00,
-    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-SAF-8102',
-    stockStatus: 'In Stock',
-    stockCount: 14,
-    leadTime: 'Next-Day UK Dispatch',
-    specifications: 'Type 4 SIL 3 | 14mm Resolution | 600mm Height | IP67 Rated',
-    manufacturer: 'Sentinel Safety Systems (Birmingham)',
-    isUkcaCertified: true
-  },
-  {
-    id: 3,
-    name: 'High-Torque Helical Bevel Gear Motor 1.5kW',
-    description: 'High-efficiency IE3 three-phase industrial geared motor with hollow shaft output for conveyor drives and automated machinery.',
-    category: 'Motors & Drives',
-    price: 645.00,
-    imageUrl: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-MOT-1950',
-    stockStatus: 'In Stock',
-    stockCount: 9,
-    leadTime: 'Next-Day UK Dispatch',
-    specifications: '1.5kW / 2HP | 400V 50Hz | Output 48 RPM | IP55 Rated',
-    manufacturer: 'TorqDrive UK (Leeds)',
-    isUkcaCertified: true
-  },
-  {
-    id: 4,
-    name: 'Digital Ultrasonic Clamp-On Flow Meter',
-    description: 'Non-invasive clamp-on ultrasonic transit-time flow meter for pipe sizes DN15 to DN700 with high-accuracy pulse and telemetry.',
-    category: 'Instrumentation',
-    price: 1120.00,
-    imageUrl: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-INS-3340',
-    stockStatus: 'Low Stock',
-    stockCount: 3,
-    leadTime: '48h UK Mainland',
-    specifications: 'Accuracy ±1.0% | Pipe DN15-DN700 | 4-20mA / Modbus RTU | IP68',
-    manufacturer: 'PrecisionSense UK (Bristol)',
-    isUkcaCertified: true
-  },
-  {
-    id: 5,
-    name: 'Pneumatic 5/2 Double Solenoid Valve Manifold',
-    description: '5-station modular pneumatic valve terminal with 24V DC pilot coils, built-in LED status indicators, and manual overrides.',
-    category: 'Pneumatics',
-    price: 295.00,
-    imageUrl: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-PNE-6041',
-    stockStatus: 'In Stock',
-    stockCount: 32,
-    leadTime: 'Next-Day UK Dispatch',
-    specifications: '1.5 - 8 Bar | 24V DC 1.2W | 800 L/min Flow | G 1/4" Ports',
-    manufacturer: 'AeroFlow Pneumatics (Manchester)',
-    isUkcaCertified: true
-  },
-  {
-    id: 6,
-    name: 'Stainless Steel 316 2-Piece Ball Valve PN16',
-    description: 'Full-bore CF8M stainless steel ball valve with ISO 5211 direct mounting pad for pneumatic or electric actuation.',
-    category: 'Fluid Handling',
-    price: 185.00,
-    imageUrl: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-VLV-2280',
-    stockStatus: 'In Stock',
-    stockCount: 45,
-    leadTime: 'Next-Day UK Dispatch',
-    specifications: '316 Stainless Steel | DN50 (2") Flanged PN16 | PTFE Seats | Firesafe',
-    manufacturer: 'Apex Valve Works (Aberdeen)',
-    isUkcaCertified: true
-  },
-  {
-    id: 7,
-    name: 'Laser Time-of-Flight Distance Sensor 0.1-50m',
-    description: 'Long-range optical laser measurement sensor with visible red Class 2 laser and IO-Link communication for automation.',
-    category: 'Automation & Sensors',
-    price: 540.00,
-    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80',
-    sku: 'UK-AUT-5512',
-    stockStatus: 'Low Stock',
-    stockCount: 2,
-    leadTime: '2-3 Working Days',
-    specifications: 'Range 0.1–50m | Repeatability ±1mm | IO-Link / 0-10V | IP67 M12',
-    manufacturer: 'OptiScan Instruments (Cambridge)',
-    isUkcaCertified: true
-  },
+
+
   {
     id: 8,
     name: 'Heavy-Duty Industrial Mobile Workbench 1000kg',
@@ -137,11 +43,51 @@ export class ProductService {
   readonly products = this.productsState.asReadonly();
 
 
-  private http = inject(HttpClient);
-  private api = `${enviornment.apiUrl}/products`;
+  private readonly http = inject(HttpClient);
+  private readonly api = `${enviornment.apiUrl}/products`;
 
-  getProducts() {
-    return this.http.get<ProductsApiResponse>(this.api);
+  getProducts(limit = 200) {
+    return this.http.get<ProductsApiResponse>(`${this.api}?limit=${limit}`);
+  }
+
+  searchProducts(query: string, limit = 200) {
+    const params = new URLSearchParams({ q: query, limit: String(limit) });
+    return this.http.get<ProductsApiResponse>(`${this.api}/search?${params.toString()}`);
+  }
+
+  hasApiProducts(): boolean {
+    return this.productsState().some(product => product.apiProduct !== undefined);
+  }
+
+  setProductsFromApi(apiProducts: ApiProduct[]): void {
+    this.saveProduct(this.mapApiProducts(apiProducts));
+  }
+
+  mapApiProducts(apiProducts: ApiProduct[]): Product[] {
+    return apiProducts.map(product => this.mapApiProduct(product));
+  }
+
+  private mapApiProduct(product: ApiProduct): Product {
+    const stockStatus: StockStatus = product.availabilityStatus === 'In Stock'
+      || product.availabilityStatus === 'Low Stock'
+      || product.availabilityStatus === 'Out of Stock'
+      ? product.availabilityStatus
+      : 'Made to Order';
+
+    return {
+      id: product.id,
+      name: product.title,
+      description: product.description,
+      category: product.category,
+      price: product.price,
+      imageUrl: product.thumbnail || product.images[0] || '',
+      sku: product.sku,
+      stockStatus,
+      stockCount: product.stock,
+      leadTime: product.shippingInformation,
+      manufacturer: product.brand,
+      apiProduct: product
+    };
   }
 
   // Computed Industrial Metrics
@@ -235,21 +181,48 @@ export class ProductService {
 
   updateProduct(productId: number, updatedProduct: ProductInput): boolean {
     const products = this.productsState();
-    const index = products.findIndex(p => p.id === productId);
+    const index = products.findIndex(product => product.id === productId);
     if (index === -1) {
       return false;
     }
 
     const existing = products[index];
-    const merged: Product = {
+    const updated: Product = {
       ...existing,
       ...updatedProduct,
       id: productId,
       sku: updatedProduct.sku || existing.sku || `UK-IND-${1000 + productId}`
     };
-
-    this.saveProduct(products.map(p => (p.id === productId ? merged : p)));
+    this.saveProduct(products.map(product => product.id === productId ? updated : product));
     return true;
+  }
+
+  updateApiProduct(productId: number, changes: Partial<ApiProduct>): Observable<ApiProduct> {
+    const existing = this.productsState().find(product => product.id === productId)?.apiProduct;
+    if (!existing) {
+      throw new Error(`API product ${productId} is not available in the current catalog.`);
+    }
+
+    return this.http.patch<ApiProductUpdateResponse>(`${this.api}/${productId}`, changes).pipe(
+      map(response => ({ ...existing, ...response })),
+      tap(updatedApiProduct => {
+        const updatedProduct = this.mapApiProduct(updatedApiProduct);
+        this.saveProduct(this.productsState().map(product =>
+          product.id === productId ? updatedProduct : product
+        ));
+      })
+    );
+  }
+
+  deleteApiProduct(productId: number): Observable<ApiProductDeleteResponse> {
+    return this.http.delete<ApiProductDeleteResponse>(`${this.api}/${productId}`).pipe(
+      tap(response => {
+        if (response.id !== productId || response.isDeleted !== true) {
+          throw new Error('The product API did not confirm that this product was deleted.');
+        }
+        this.removeProductFromState(productId);
+      })
+    );
   }
 
   renameCategory(previousName: string, newName: string): void {
@@ -268,13 +241,15 @@ export class ProductService {
   }
 
   deleteProduct(productId: number): boolean {
-    const products = this.productsState();
-    const filtered = products.filter(p => p.id !== productId);
-    if (filtered.length === products.length) {
+    if (!this.productsState().some(product => product.id === productId)) {
       return false;
     }
-    this.saveProduct(filtered);
+    this.removeProductFromState(productId);
     return true;
+  }
+
+  private removeProductFromState(productId: number): void {
+    this.saveProduct(this.productsState().filter(product => product.id !== productId));
   }
 
   duplicateProduct(productId: number): Product | undefined {

@@ -12,6 +12,16 @@
     }
   </header>
 
+  @if (isLoadingCategories()) {
+    <app-loader message="Loading categories from the product catalog…" />
+  } @else if (categoriesLoadError()) {
+    <div class="category-load-error" role="alert">
+      <span class="pi pi-exclamation-circle" aria-hidden="true"></span>
+      <span>{{ categoriesLoadError() }}</span>
+      <button type="button" class="btn-secondary" (click)="loadCategories()">Try again</button>
+    </div>
+  }
+
   <div class="toolbar">
     <label class="search-field">
       <span class="pi pi-search" aria-hidden="true"></span>
@@ -39,7 +49,9 @@
       <tbody>
         @for (category of paginatedCategories(); track category.id) {
           <tr>
-            <td class="category-name">{{ category.name }}</td>
+            <td class="category-name">
+              {{ category.name }}
+            </td>
             <td class="description">{{ category.description }}</td>
             <td>
               <span class="status-label" [class.inactive]="!category.active">
@@ -48,7 +60,7 @@
             </td>
             <td class="actions-column">
               <div class="actions">
-                @if (authService.hasPermission('categories.update')) {
+                @if (authService.hasPermission('categories.update') && category.source !== 'api') {
                   <a
                     [routerLink]="['/categories', category.id, 'edit']"
                     class="btn-action btn-edit"
@@ -58,7 +70,7 @@
                     <span>Edit</span>
                   </a>
                 }
-                @if (authService.hasPermission('categories.delete')) {
+                @if (authService.hasPermission('categories.delete') && category.source !== 'api') {
                   <button
                     type="button"
                     class="btn-action btn-delete"
@@ -93,6 +105,7 @@
       [rows]="rows()"
       [totalRecords]="filteredCategories().length"
       [rowsPerPageOptions]="rowsPerPageOptions"
+      appendTo="body"
       [showCurrentPageReport]="true"
       currentPageReportTemplate="{first}–{last} of {totalRecords}"
       (onPageChange)="onPageChange($event)"

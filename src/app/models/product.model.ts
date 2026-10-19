@@ -1,8 +1,25 @@
-export type ProductInput = Omit<Product, 'id'>;
-
-export type ProductAvailabilityStatus = 'In Stock' | 'Low Stock' | 'Out of Stock';
+export type StockStatus = 'In Stock' | 'Low Stock' | 'Out of Stock' | 'Made to Order';
 
 export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  imageUrl: string;
+  sku?: string;
+  stockStatus?: StockStatus;
+  stockCount?: number;
+  leadTime?: string;
+  specifications?: string;
+  manufacturer?: string;
+  isUkcaCertified?: boolean;
+  apiProduct?: ApiProduct;
+}
+
+export type ProductInput = Omit<Product, 'id'>;
+
+export interface ApiProduct {
   id: number;
   title: string;
   description: string;
@@ -18,7 +35,7 @@ export interface Product {
   dimensions: ProductDimensions;
   warrantyInformation: string;
   shippingInformation: string;
-  availabilityStatus: ProductAvailabilityStatus;
+  availabilityStatus: string;
   reviews: ProductReview[];
   returnPolicy: string;
   minimumOrderQuantity: number;
@@ -28,11 +45,19 @@ export interface Product {
 }
 
 export interface ProductsApiResponse {
-  products: Product[];
+  products: ApiProduct[];
   total: number;
   skip: number;
   limit: number;
 }
+
+export type ApiProductUpdateResponse = Partial<ApiProduct> & { id: number };
+
+export type ApiProductDeleteResponse = Partial<ApiProduct> & {
+  id: number;
+  isDeleted: boolean;
+  deletedOn: string;
+};
 
 export interface ProductDimensions {
   width: number;

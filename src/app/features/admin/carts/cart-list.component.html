@@ -1,0 +1,147 @@
+<section class="carts-container">
+  <header class="page-header">
+    <div>
+      <h1>Cart Management</h1>
+      <p class="subtitle">Review customer carts, items, and order totals.</p>
+    </div>
+    @if (!isLoading() && !loadError()) {
+      <button type="button" class="btn-secondary" (click)="loadCarts()">
+        <span class="pi pi-refresh" aria-hidden="true"></span>
+        Refresh
+      </button>
+    }
+  </header>
+
+  @if (isLoading()) {
+    <app-loader message="Loading carts…" />
+  } @else if (loadError()) {
+    <div class="state-message error-message" role="alert">
+      <span class="pi pi-exclamation-circle" aria-hidden="true"></span>
+      <div>
+        <strong>Carts could not be loaded</strong>
+        <p>{{ loadError() }}</p>
+        <button type="button" class="btn-primary" (click)="loadCarts()">Try again</button>
+      </div>
+    </div>
+  } @else {
+    <div class="summary-grid" aria-label="Cart summary">
+      <article class="summary-card">
+        <span class="summary-icon pi pi-shopping-cart" aria-hidden="true"></span>
+        <div><span class="summary-label">Total carts</span><strong>{{ totalItems() }}</strong></div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon pi pi-box" aria-hidden="true"></span>
+        <div><span class="summary-label">Products in carts</span><strong>{{ totalProducts() }}</strong></div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon pi pi-list" aria-hidden="true"></span>
+        <div><span class="summary-label">Items requested</span><strong>{{ totalQuantity() }}</strong></div>
+      </article>
+      <article class="summary-card">
+        <span class="summary-icon pi pi-wallet" aria-hidden="true"></span>
+        <div><span class="summary-label">Discounted cart value</span><strong>{{ totalRevenue() | currency:'USD':'symbol':'1.2-2' }}</strong></div>
+      </article>
+    </div>
+
+    <div class="table-toolbar">
+      <label class="search-field">
+        <span class="pi pi-search" aria-hidden="true"></span>
+        <input
+          type="search"
+          placeholder="Search by cart ID or customer ID"
+          [value]="searchQuery()"
+          (input)="updateSearch(searchInput.value)"
+          #searchInput
+          aria-label="Search carts by cart ID or customer ID"
+        />
+      </label>
+      <span class="item-count">Showing <strong>{{ filteredCarts().length }}</strong> of <strong>{{ totalItems() }}</strong> carts</span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Cart</th>
+              <th>Customer</th>
+              <th>Products</th>
+              <th>Quantity</th>
+              <th>Original total</th>
+              <th>Discounted total</th>
+              <th><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cart of paginatedCarts(); track cart.id) {
+              <tr>
+                <td><span class="cart-id">#{{ cart.id }}</span></td>
+                <td><span class="customer-badge">User #{{ cart.userId }}</span></td>
+                <td>{{ cart.totalProducts }}</td>
+                <td>{{ cart.totalQuantity }}</td>
+                <td class="money">{{ cart.total | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td class="money discounted">{{ cart.discountedTotal | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td class="action-cell">
+                  <button
+                    type="button"
+                    class="details-button"
+                    (click)="toggleCartDetails(cart.id)"
+                    [attr.aria-expanded]="expandedCartId() === cart.id"
+                    [attr.aria-controls]="'cart-products-' + cart.id"
+                  >
+                    <span class="pi" [class.pi-chevron-down]="expandedCartId() !== cart.id" [class.pi-chevron-up]="expandedCartId() === cart.id" aria-hidden="true"></span>
+                    {{ expandedCartId() === cart.id ? 'Hide items' : 'View items' }}
+                  </button>
+                </td>
+              </tr>
+              @if (expandedCartId() === cart.id) {
+                <tr class="details-row">
+                  <td colspan="7">
+                    <div class="products-panel" [id]="'cart-products-' + cart.id">
+                      <h2>Items in cart #{{ cart.id }}</h2>
+                      <div class="product-list">
+                        @for (product of cart.products; track product.id) {
+                          <article class="product-item">
+                            <img [src]="product.thumbnail" [alt]="product.title" loading="lazy" />
+                            <div class="product-info">
+                              <strong>{{ product.title }}</strong>
+                              <span>Qty {{ product.quantity }} · {{ product.discountPercentage | number:'1.0-2' }}% off</span>
+                            </div>
+                            <div class="product-prices">
+                              <span>{{ product.price | currency:'USD':'symbol':'1.2-2' }} each</span>
+                              <strong>{{ product.discountedTotal | currency:'USD':'symbol':'1.2-2' }}</strong>
+                            </div>
+                          </article>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-cell">
+                  @if (searchQuery()) {
+                    No carts match “{{ searchQuery() }}”.
+                  } @else {
+                    No carts were found.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p-paginator
+        [first]="first()"
+        [rows]="rows()"
+        [totalRecords]="filteredCarts().length"
+        [rowsPerPageOptions]="rowsPerPageOptions"
+        appendTo="body"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="{first}–{last} of {totalRecords}"
+        (onPageChange)="onPageChange($event)"
+      />
+    </div>
+  }
+</section>

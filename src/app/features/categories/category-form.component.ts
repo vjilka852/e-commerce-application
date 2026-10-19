@@ -41,7 +41,7 @@ export class CategoryFormComponent implements OnInit {
 
     const id = Number(idParam);
     const category = Number.isInteger(id) && id > 0 ? this.categoryService.getCategoryById(id) : undefined;
-    if (!category) {
+    if (!category || category.source === 'api') {
       void this.router.navigate(['/categories']);
       return;
     }

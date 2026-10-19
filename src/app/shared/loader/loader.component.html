@@ -1,0 +1,10 @@
+@if (inline) {
+  <span class="loader-inline" role="status" [attr.aria-label]="message">
+    <span class="pi pi-spin pi-spinner" aria-hidden="true"></span>
+  </span>
+} @else {
+  <div class="loader" [class.compact]="compact" role="status">
+    <span class="pi pi-spin pi-spinner" aria-hidden="true"></span>
+    <span>{{ message }}</span>
+  </div>
+}

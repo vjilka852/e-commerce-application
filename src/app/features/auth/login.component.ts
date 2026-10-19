@@ -1,12 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
+import { LoaderComponent } from '../../shared/loader/loader.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, LoaderComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -16,12 +17,17 @@ export class LoginComponent {
   private readonly router = inject(Router);
 
   readonly loginForm = new FormGroup({
-    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    username: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] })
   });
 
+  readonly isPasswordVisible = signal(false);
   errorMessage = '';
   isSubmitting = false;
+
+  togglePasswordVisibility(): void {
+    this.isPasswordVisible.update(visible => !visible);
+  }
 
   async onSubmit(): Promise<void> {
     this.errorMessage = '';
@@ -32,10 +38,10 @@ export class LoginComponent {
 
     this.isSubmitting = true;
     try {
-      const { email, password } = this.loginForm.getRawValue();
-      const user = await this.authService.login(email, password);
+      const { username, password } = this.loginForm.getRawValue();
+      const user = await this.authService.login(username, password);
       if (!user) {
-        this.errorMessage = 'Email or password is incorrect.';
+        this.errorMessage = 'Username/email or password is incorrect.';
         return;
       }
 

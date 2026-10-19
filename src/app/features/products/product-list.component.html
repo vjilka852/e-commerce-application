@@ -3,7 +3,7 @@
   <div class="page-header">
     <div class="header-text">
       <h1>Products</h1>
-      <p class="subtitle">Manage your product catalog, pricing, and stock levels.</p>
+      <p class="subtitle">Browse the live product catalog. Select a product to see its complete details.</p>
     </div>
     @if (authService.hasPermission('products.create')) {
       <div class="header-action">
@@ -16,13 +16,14 @@
   </div>
 
   <!-- Filters & Search Toolbar -->
+  @if (!isLoadingProducts() && !productsLoadError()) {
   <div class="table-toolbar">
     <div class="search-field">
       <span class="pi pi-search search-icon" aria-hidden="true"></span>
       <input
         type="text"
         pInputText
-        placeholder="Search products by name or SKU..."
+        placeholder="Search products by name, brand, category or keyword..."
         [ngModel]="searchQuery()"
         (ngModelChange)="updateSearch($event)"
       />
@@ -54,24 +55,57 @@
       </div>
 
       <div class="item-count">
-        <span>Showing <strong>{{ filteredProducts().length }}</strong> products</span>
+        <span>Showing <strong>{{ filteredProducts().length }}</strong> of <strong>{{ searchQuery() ? apiSearchTotal() : productService.products().length }}</strong> products</span>
       </div>
     </div>
   </div>
+  }
 
-  <!-- Products Table -->
+  @if (isLoadingProducts()) {
+    <app-loader message="Loading products from the catalog…" />
+  } @else if (productsLoadError()) {
+    <div class="catalog-message catalog-error" role="alert">
+      <span class="pi pi-exclamation-circle" aria-hidden="true"></span>
+      <div>
+        <strong>Products could not be loaded</strong>
+        <p>{{ productsLoadError() }}</p>
+        <button type="button" class="btn-primary" (click)="loadProducts()">Try again</button>
+      </div>
+    </div>
+  } @else {
   <div class="table-card">
     <table class="data-table">
       <thead>
         <tr>
           <th class="col-product">Product</th>
           <th class="col-category">Category</th>
-          <th class="col-price">Price (GBP)</th>
-          <th class="col-stock">Status</th>
+          <th class="col-price">Price</th>
+          <th class="col-rating">Rating</th>
+          <th class="col-stock">Availability</th>
           <th class="col-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
+        @if (isSearching()) {
+          <tr>
+            <td colspan="6" class="empty-cell">
+              <app-loader message="Searching the product catalog…" [compact]="true" />
+            </td>
+          </tr>
+        } @else if (searchError()) {
+          <tr>
+            <td colspan="6" class="empty-cell">
+              <div class="catalog-message catalog-error" role="alert">
+                <span class="pi pi-exclamation-circle" aria-hidden="true"></span>
+                <div>
+                  <strong>Product search failed</strong>
+                  <p>{{ searchError() }}</p>
+                  <button type="button" class="btn-primary" (click)="retrySearch()">Try again</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @else {
         @for (product of paginatedProducts(); track product.id) {
           <tr>
             <!-- Product Identity -->
@@ -99,25 +133,52 @@
             <!-- Price -->
             <td class="col-price">
               <div class="price-box">
-                <span class="main-price font-mono">£{{ product.price | number:'1.2-2' }}</span>
-                <span class="vat-note">ex. VAT</span>
+                @if (product.apiProduct; as apiProduct) {
+                  <span class="main-price font-mono">{{ apiProduct.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                  <span class="discount-note">{{ apiProduct.discountPercentage }}% off</span>
+                } @else {
+                  <span class="main-price font-mono">£{{ product.price | number:'1.2-2' }}</span>
+                  <span class="vat-note">ex. VAT</span>
+                }
               </div>
             </td>
 
-            <!-- Stock Status -->
-            <td class="col-stock">
-              @if (product.stockStatus === 'In Stock' || !product.stockStatus) {
-                <span class="status-tag status-in-stock">In Stock</span>
-              } @else if (product.stockStatus === 'Low Stock') {
-                <span class="status-tag status-low-stock">Low Stock</span>
+            <td class="col-rating">
+              @if (product.apiProduct; as apiProduct) {
+                <span class="rating-value"><span class="pi pi-star-fill" aria-hidden="true"></span> {{ apiProduct.rating | number:'1.1-1' }}</span>
               } @else {
-                <span class="status-tag status-order">Made to Order</span>
+                <span class="muted-value">—</span>
+              }
+            </td>
+
+            <td class="col-stock">
+              @if (product.apiProduct; as apiProduct) {
+                <span class="status-tag"
+                  [class.status-in-stock]="apiProduct.availabilityStatus === 'In Stock'"
+                  [class.status-low-stock]="apiProduct.availabilityStatus === 'Low Stock'"
+                  [class.status-out-stock]="apiProduct.availabilityStatus === 'Out of Stock'">
+                  {{ apiProduct.availabilityStatus }}
+                </span>
+                <small class="stock-quantity">{{ apiProduct.stock }} in stock</small>
+              } @else {
+                <span class="status-tag"
+                  [class.status-in-stock]="product.stockStatus === 'In Stock' || !product.stockStatus"
+                  [class.status-low-stock]="product.stockStatus === 'Low Stock'"
+                  [class.status-out-stock]="product.stockStatus === 'Out of Stock'"
+                  [class.status-order]="product.stockStatus === 'Made to Order'">
+                  {{ product.stockStatus || 'In Stock' }}
+                </span>
+                <small class="stock-quantity">{{ product.stockCount ?? 0 }} in stock</small>
               }
             </td>
 
             <!-- Actions -->
             <td class="col-actions">
               <div class="action-buttons">
+                <button type="button" class="btn-action btn-details" (click)="showProductDetails(product)" [attr.aria-label]="'View details for ' + product.name">
+                  <span class="pi pi-eye" aria-hidden="true"></span>
+                  <span>Details</span>
+                </button>
                 @if (authService.hasPermission('products.update')) {
                   <a
                     [routerLink]="['/edit', product.id]"
@@ -146,7 +207,7 @@
 
         @if (filteredProducts().length === 0) {
           <tr>
-            <td colspan="5" class="empty-cell">
+            <td colspan="6" class="empty-cell">
               <div class="empty-state">
                 <span class="pi pi-box empty-icon"></span>
                 <p class="empty-title">No products found</p>
@@ -162,6 +223,7 @@
             </td>
           </tr>
         }
+        }
       </tbody>
     </table>
     <p-paginator
@@ -174,6 +236,129 @@
       (onPageChange)="onPageChange($event)"
     />
   </div>
+  }
+
+  <p-dialog
+    [visible]="isDetailsOpen()"
+    (visibleChange)="isDetailsOpen.set($event)"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: 'min(96vw, 980px)' }"
+    [header]="selectedProduct()?.name ?? 'Product details'"
+    styleClass="product-details-dialog"
+  >
+    @if (selectedProduct(); as selected) {
+      @if (selected.apiProduct; as apiProduct) {
+        <div class="product-detail-content">
+          <div class="detail-hero">
+            <div class="detail-image-wrap">
+              <img [src]="apiProduct.thumbnail" [alt]="apiProduct.title" (error)="onImageError($event)">
+            </div>
+            <div class="detail-summary">
+              <span class="category-badge">{{ apiProduct.category }}</span>
+              <h2>{{ apiProduct.title }}</h2>
+              <p>{{ apiProduct.description }}</p>
+              <div class="detail-highlights">
+                <span class="detail-price">{{ apiProduct.price | currency:'USD':'symbol':'1.2-2' }}</span>
+                <span class="discount-pill">{{ apiProduct.discountPercentage }}% discount</span>
+                <span class="rating-value"><span class="pi pi-star-fill" aria-hidden="true"></span> {{ apiProduct.rating | number:'1.1-1' }} / 5</span>
+              </div>
+            </div>
+          </div>
+
+          <section class="detail-section">
+            <h3>Product information</h3>
+            <dl class="detail-grid">
+              <div><dt>Brand</dt><dd>{{ apiProduct.brand }}</dd></div>
+              <div><dt>SKU</dt><dd>{{ apiProduct.sku }}</dd></div>
+              <div><dt>Availability</dt><dd>{{ apiProduct.availabilityStatus }}</dd></div>
+              <div><dt>Stock quantity</dt><dd>{{ apiProduct.stock }}</dd></div>
+              <div><dt>Minimum order</dt><dd>{{ apiProduct.minimumOrderQuantity }}</dd></div>
+              <div><dt>Weight</dt><dd>{{ apiProduct.weight }} kg</dd></div>
+              <div><dt>Dimensions</dt><dd>{{ apiProduct.dimensions.width }} × {{ apiProduct.dimensions.height }} × {{ apiProduct.dimensions.depth }} cm</dd></div>
+            </dl>
+            <div class="tag-list">
+              @for (tag of apiProduct.tags; track tag) {
+                <span class="category-badge">{{ tag }}</span>
+              }
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h3>Shipping, warranty & returns</h3>
+            <dl class="detail-grid">
+              <div><dt>Shipping</dt><dd>{{ apiProduct.shippingInformation }}</dd></div>
+              <div><dt>Warranty</dt><dd>{{ apiProduct.warrantyInformation }}</dd></div>
+              <div><dt>Return policy</dt><dd>{{ apiProduct.returnPolicy }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="detail-section">
+            <h3>Product images</h3>
+            <div class="image-gallery">
+              @for (image of apiProduct.images; track image) {
+                <img [src]="image" [alt]="apiProduct.title" (error)="onImageError($event)" loading="lazy">
+              }
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h3>Customer reviews <span class="section-count">{{ apiProduct.reviews.length }}</span></h3>
+            @if (apiProduct.reviews.length > 0) {
+              <div class="review-list">
+                @for (review of apiProduct.reviews; track $index) {
+                  <article class="review-card">
+                    <div class="review-heading">
+                      <strong>{{ review.reviewerName }}</strong>
+                      <span class="rating-value"><span class="pi pi-star-fill" aria-hidden="true"></span> {{ review.rating }} / 5</span>
+                    </div>
+                    <p>{{ review.comment }}</p>
+                    <small>{{ review.reviewerEmail }} · {{ review.date | date:'mediumDate' }}</small>
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="muted-value">No reviews yet.</p>
+            }
+          </section>
+
+          <section class="detail-section">
+            <h3>Record metadata</h3>
+            <dl class="detail-grid">
+              <div><dt>Created</dt><dd>{{ apiProduct.meta.createdAt | date:'medium' }}</dd></div>
+              <div><dt>Last updated</dt><dd>{{ apiProduct.meta.updatedAt | date:'medium' }}</dd></div>
+              <div><dt>Barcode</dt><dd>{{ apiProduct.meta.barcode }}</dd></div>
+              <div>
+                <dt>QR code</dt>
+                <dd>
+                  @if (apiProduct.meta.qrCode.startsWith('http')) {
+                    <a [href]="apiProduct.meta.qrCode" target="_blank" rel="noopener noreferrer">Open QR code</a>
+                  } @else {
+                    {{ apiProduct.meta.qrCode }}
+                  }
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+      } @else {
+        <div class="product-detail-content">
+          <span class="category-badge">{{ selected.category }}</span>
+          <p>{{ selected.description }}</p>
+          <dl class="detail-grid">
+            <div><dt>SKU</dt><dd>{{ selected.sku || '—' }}</dd></div>
+            <div><dt>Price</dt><dd>£{{ selected.price | number:'1.2-2' }}</dd></div>
+            <div><dt>Stock status</dt><dd>{{ selected.stockStatus || 'In Stock' }}</dd></div>
+            <div><dt>Stock quantity</dt><dd>{{ selected.stockCount ?? 0 }}</dd></div>
+            <div><dt>Manufacturer</dt><dd>{{ selected.manufacturer || '—' }}</dd></div>
+            <div><dt>Lead time</dt><dd>{{ selected.leadTime || '—' }}</dd></div>
+            <div><dt>Specifications</dt><dd>{{ selected.specifications || '—' }}</dd></div>
+          </dl>
+        </div>
+      }
+    }
+  </p-dialog>
 
   <!-- DELETE CONFIRMATION POPUP MODAL -->
   @if (authService.hasPermission('products.delete')) {
@@ -199,15 +384,22 @@
         <span class="confirm-notice">This action will remove the product from the catalog and cannot be undone.</span>
       </div>
     </div>
+    @if (deleteError()) {
+      <p class="delete-error" role="alert">{{ deleteError() }}</p>
+    }
 
     <ng-template pTemplate="footer">
       <div class="confirm-modal-footer">
-        <button type="button" class="btn-secondary" (click)="cancelDelete()">
+        <button type="button" class="btn-secondary" (click)="cancelDelete()" [disabled]="isDeletingProduct()">
           Cancel
         </button>
-        <button type="button" class="btn-danger" (click)="executeDelete()">
-          <span class="pi pi-trash"></span>
-          <span>Delete Product</span>
+        <button type="button" class="btn-danger" (click)="executeDelete()" [disabled]="isDeletingProduct()">
+          @if (isDeletingProduct()) {
+            <app-loader message="Deleting product" [inline]="true" />
+          } @else {
+            <span class="pi pi-trash" aria-hidden="true"></span>
+          }
+          <span>{{ isDeletingProduct() ? 'Deleting…' : 'Delete Product' }}</span>
         </button>
       </div>
     </ng-template>

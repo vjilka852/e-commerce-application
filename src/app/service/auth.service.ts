@@ -1,5 +1,7 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import {
   AuthUser,
   AVAILABLE_PERMISSIONS,
@@ -11,22 +13,44 @@ import {
   StoredAuthUser,
   UserInput
 } from '../models/auth.model';
+import { enviornment } from '../../environments/environment';
 
 const USERS_STORAGE_KEY = 'ecommerce_users';
 const ROLES_STORAGE_KEY = 'ecommerce_roles';
 const SESSION_STORAGE_KEY = 'ecommerce_session';
+const REMOTE_SESSION_STORAGE_KEY = 'ecommerce_remote_session';
 const PASSWORD_ITERATIONS = 120_000;
+
+interface DummyJsonLoginResponse {
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface RemoteSession {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly http = inject(HttpClient);
   private readonly usersState = signal<StoredAuthUser[]>([]);
   private readonly rolesState = signal<RoleDefinition[]>([]);
   private readonly currentUserState = signal<AuthUser | null>(null);
+  private readonly remoteSessionState = signal<RemoteSession | null>(null);
 
   readonly users = computed(() => this.usersState().map(this.toAuthUser));
   readonly roles = this.rolesState.asReadonly();
   readonly currentUser = this.currentUserState.asReadonly();
+  readonly accessToken = computed(() => this.remoteSessionState()?.accessToken ?? null);
+  readonly isAdmin = computed(() => this.isAdminRoleId(this.currentUserState()?.roleId));
   readonly currentRole = computed(() => {
     const roleId = this.currentUserState()?.roleId;
     return roleId ? this.rolesState().find(role => role.id === roleId) ?? null : null;
@@ -40,37 +64,98 @@ export class AuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<AuthUser | null> {
+  async login(identifier: string, password: string): Promise<AuthUser | null> {
     if (this.storageError()) {
       throw new Error(this.storageError());
     }
 
-    const normalizedEmail = email.trim().toLocaleLowerCase();
-    const account = this.usersState().find(user => user.email.toLocaleLowerCase() === normalizedEmail);
-    if (!account || !account.active || !(await this.verifyPassword(password, account))) {
-      return null;
+    const normalizedIdentifier = identifier.trim().toLocaleLowerCase();
+    const localAccount = this.usersState().find(user => user.email.toLocaleLowerCase() === normalizedIdentifier);
+    if (localAccount) {
+      if (!localAccount.active || !(await this.verifyPassword(password, localAccount))) {
+        return null;
+      }
+
+      this.saveLocalSession(localAccount.id);
+      const user = this.toAuthUser(localAccount);
+      this.currentUserState.set(user);
+      this.remoteSessionState.set(null);
+      return user;
     }
 
+    return this.loginWithDummyJson(identifier.trim(), password);
+  }
+
+  private async loginWithDummyJson(username: string, password: string): Promise<AuthUser | null> {
+    let response: DummyJsonLoginResponse;
     try {
-      localStorage.setItem(SESSION_STORAGE_KEY, account.id);
+      response = await firstValueFrom(this.http.post<DummyJsonLoginResponse>(
+        `${enviornment.apiUrl}/auth/login`,
+        { username, password, expiresInMins: 30 },
+        { withCredentials: true }
+      ));
     } catch (error) {
+      if (error instanceof HttpErrorResponse && (error.status === 400 || error.status === 401)) {
+        return null;
+      }
+      console.error('Unable to sign in through DummyJSON.', error);
+      throw new Error('The sign-in service could not be reached. Please try again.');
+    }
+
+    if (!this.isValidDummyJsonResponse(response)) {
+      throw new Error('The sign-in service returned an invalid response.');
+    }
+    if (!this.rolesState().some(role => role.id === 'client')) {
+      throw new Error('The Client role is not configured. Restore the Client role before signing in.');
+    }
+
+    const user: AuthUser = {
+      id: `dummyjson:${response.id}`,
+      displayName: `${response.firstName} ${response.lastName}`.trim(),
+      email: response.email,
+      roleId: 'client',
+      active: true
+    };
+    const remoteSession = {
+      user,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken
+    };
+
+    try {
+      localStorage.setItem(REMOTE_SESSION_STORAGE_KEY, JSON.stringify(remoteSession));
+      localStorage.setItem(SESSION_STORAGE_KEY, user.id);
+    } catch (error) {
+      localStorage.removeItem(REMOTE_SESSION_STORAGE_KEY);
       console.error('Unable to persist the signed-in user.', error);
       throw new Error('Your browser could not save the sign-in session. Check local storage settings and try again.');
     }
 
-    const user = this.toAuthUser(account);
+    this.remoteSessionState.set(remoteSession);
     this.currentUserState.set(user);
     return user;
   }
 
+  private saveLocalSession(userId: string): void {
+    try {
+      localStorage.removeItem(REMOTE_SESSION_STORAGE_KEY);
+      localStorage.setItem(SESSION_STORAGE_KEY, userId);
+    } catch (error) {
+      console.error('Unable to persist the signed-in user.', error);
+      throw new Error('Your browser could not save the sign-in session. Check local storage settings and try again.');
+    }
+  }
+
   logout(): boolean {
     this.currentUserState.set(null);
+    this.remoteSessionState.set(null);
     if (!this.isBrowser) {
       return true;
     }
 
     try {
       localStorage.removeItem(SESSION_STORAGE_KEY);
+      localStorage.removeItem(REMOTE_SESSION_STORAGE_KEY);
       return true;
     } catch (error) {
       console.error('Unable to clear the saved sign-in session.', error);
@@ -86,7 +171,8 @@ export class AuthService {
 
   hasRole(roleIds: readonly string[]): boolean {
     const roleId = this.currentUserState()?.roleId;
-    return roleId !== undefined && roleIds.includes(roleId);
+    return (this.isAdmin() && roleIds.includes('admin'))
+      || (roleId !== undefined && roleIds.includes(roleId));
   }
 
   roleLabel(roleId: string): string {
@@ -214,12 +300,76 @@ export class AuthService {
       const sessionUser = users.find(user => user.id === sessionUserId && user.active);
       if (sessionUser && roles.some(role => role.id === sessionUser.roleId)) {
         this.currentUserState.set(this.toAuthUser(sessionUser));
+      } else if (sessionUserId?.startsWith('dummyjson:')) {
+        const remoteSession = this.parseRemoteSession(localStorage.getItem(REMOTE_SESSION_STORAGE_KEY));
+        if (remoteSession?.user.id === sessionUserId && roles.some(role => role.id === remoteSession.user.roleId)) {
+          this.remoteSessionState.set(remoteSession);
+          this.currentUserState.set(remoteSession.user);
+        } else {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+          localStorage.removeItem(REMOTE_SESSION_STORAGE_KEY);
+        }
       } else if (sessionUserId !== null) {
         localStorage.removeItem(SESSION_STORAGE_KEY);
       }
     } catch (error) {
       console.error('Unable to restore local authentication data.', error);
       this.storageError.set('Local user or role data could not be loaded. Clear the ecommerce_users, ecommerce_roles, and ecommerce_session local storage entries, then reload.');
+    }
+  }
+
+  private isValidDummyJsonResponse(value: unknown): value is DummyJsonLoginResponse {
+    if (typeof value !== 'object' || value === null) {
+      return false;
+    }
+    const response = value as Record<string, unknown>;
+    return typeof response['id'] === 'number'
+      && Number.isInteger(response['id'])
+      && typeof response['username'] === 'string'
+      && typeof response['email'] === 'string'
+      && typeof response['firstName'] === 'string'
+      && typeof response['lastName'] === 'string'
+      && typeof response['accessToken'] === 'string'
+      && typeof response['refreshToken'] === 'string';
+  }
+
+  private parseRemoteSession(serialized: string | null): RemoteSession | null {
+    if (!serialized) {
+      return null;
+    }
+    try {
+      const value: unknown = JSON.parse(serialized);
+      if (typeof value !== 'object' || value === null) {
+        return null;
+      }
+      const session = value as Record<string, unknown>;
+      const user = session['user'];
+      if (typeof user !== 'object' || user === null) {
+        return null;
+      }
+      const candidate = user as Record<string, unknown>;
+      if (typeof candidate['id'] !== 'string'
+        || typeof candidate['displayName'] !== 'string'
+        || typeof candidate['email'] !== 'string'
+        || candidate['roleId'] !== 'client'
+        || candidate['active'] !== true
+        || typeof session['accessToken'] !== 'string'
+        || typeof session['refreshToken'] !== 'string') {
+        return null;
+      }
+      return {
+        user: {
+          id: candidate['id'],
+          displayName: candidate['displayName'],
+          email: candidate['email'],
+          roleId: 'client',
+          active: true
+        },
+        accessToken: session['accessToken'],
+        refreshToken: session['refreshToken']
+      };
+    } catch {
+      return null;
     }
   }
 
@@ -333,14 +483,24 @@ export class AuthService {
   }
 
   private isSystemAdmin(): boolean {
-    return this.currentUserState()?.roleId === 'admin';
+    return this.isAdmin();
+  }
+
+  private isAdminRoleId(roleId: string | undefined): boolean {
+    if (!roleId) {
+      return false;
+    }
+    const role = this.rolesState().find(candidate => candidate.id === roleId);
+    return roleId === 'admin' || role?.name.trim().toLocaleLowerCase() === 'admin';
   }
 
   private wouldRemoveLastAdmin(user: StoredAuthUser, nextRoleId: string, nextActive: boolean): boolean {
-    if (!user.active || user.roleId !== 'admin' || (nextRoleId === 'admin' && nextActive)) {
+    if (!user.active || !this.isAdminRoleId(user.roleId) || (this.isAdminRoleId(nextRoleId) && nextActive)) {
       return false;
     }
-    return this.usersState().filter(account => account.active && account.roleId === 'admin').length <= 1;
+    return this.usersState().filter(account =>
+      account.active && this.isAdminRoleId(account.roleId)
+    ).length <= 1;
   }
 
   private saveUsers(users: StoredAuthUser[]): void {

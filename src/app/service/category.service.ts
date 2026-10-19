@@ -2,65 +2,32 @@ import { Injectable, PLATFORM_ID, inject, signal, computed } from '@angular/core
 import { isPlatformBrowser } from '@angular/common';
 import { Category, CategoryInput } from '../models/category.model';
 import { ProductService } from './product.service';
+import { HttpClient } from '@angular/common/http';
+import { enviornment } from '../../environments/environment';
+import { map, Observable, tap } from 'rxjs';
 
-export const INITIAL_CATEGORIES: Category[] = [
-  {
-    id: 1,
-    name: 'Hydraulics',
-    description: 'Industrial hydraulic variable pumps, cylinders, valves, and power packs.',
-    active: true
-  },
-  {
-    id: 2,
-    name: 'Pneumatics',
-    description: 'Pneumatic valve manifolds, FRL air preparation units, cylinders, and push-in fittings.',
-    active: true
-  },
-  {
-    id: 3,
-    name: 'Motors & Drives',
-    description: 'High-efficiency IE3 three-phase electric motors, helical gearboxes, and inverter drives.',
-    active: true
-  },
-  {
-    id: 4,
-    name: 'Instrumentation',
-    description: 'Digital ultrasonic clamp-on flow meters, pressure transmitters, and temperature telemetry.',
-    active: true
-  },
-  {
-    id: 5,
-    name: 'Safety & PPE',
-    description: 'UKCA optoelectronic safety light curtains, interlocking switches, and protective machinery barriers.',
-    active: true
-  },
-  {
-    id: 6,
-    name: 'Fluid Handling',
-    description: 'Stainless steel 316 flanged ball valves, butterfly valves, and sanitary process pumps.',
-    active: true
-  },
-  {
-    id: 7,
-    name: 'Automation & Sensors',
-    description: 'Laser time-of-flight distance sensors, photoelectric, inductive proximity, and IO-Link modules.',
-    active: true
-  },
-  {
-    id: 8,
-    name: 'Workshop & Tooling',
-    description: 'Heavy-duty steel mobile workbenches, CNC tool cabinets, and precision engineering storage.',
-    active: true
-  }
-];
+const API_CATEGORY_ID_START = 1_000_000;
+const LEGACY_DEMO_CATEGORY_NAMES = new Set([
+  'hydraulics',
+  'pneumatics',
+  'motors & drives',
+  'instrumentation',
+  'safety & ppe',
+  'fluid handling',
+  'automation & sensors',
+  'workshop & tooling'
+]);
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: 'any' })
 export class CategoryService {
   private readonly storageKey = 'ecommerce_categories';
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly productService = inject(ProductService);
   private readonly categoriesState = signal<Category[]>([]);
+
+  private readonly http = inject(HttpClient);
+  private readonly api = `${enviornment.apiUrl}/products/category-list`;
 
   readonly categories = this.categoriesState.asReadonly();
   readonly totalCategories = computed(() => this.categoriesState().length);
@@ -71,36 +38,64 @@ export class CategoryService {
     }
   }
 
+  getCategories(): Observable<Category[]> {
+    return this.http.get<string[]>(this.api).pipe(
+      map(names => names.map((name, index): Category => ({
+        id: API_CATEGORY_ID_START + index,
+        name,
+        description: `Products in the ${name} category from the product catalog.`,
+        active: true,
+        source: 'api'
+      }))),
+      tap(apiCategories => this.mergeApiCategories(apiCategories))
+    );
+  }
+
+  private mergeApiCategories(apiCategories: Category[]): void {
+    const localCategories = this.categoriesState().filter(category =>
+      category.source !== 'api' && !this.isLegacyDemoCategory(category)
+    );
+    const localNames = new Set(localCategories.map(category => category.name.toLocaleLowerCase()));
+    this.saveCategories([
+      ...apiCategories.filter(category => !localNames.has(category.name.toLocaleLowerCase())),
+      ...localCategories
+    ]);
+  }
+
   private loadCategories(): Category[] {
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (!stored) {
-        return this.seedDefaultCategories();
+        return [];
       }
       const parsed = JSON.parse(stored) as Category[];
       if (!Array.isArray(parsed)) {
         throw new Error('Saved categories must be an array.');
       }
-      const normalized = parsed.map(category => ({
-        id: category.id,
-        name: category.name,
-        description: category.description ?? '',
-        active: category.active ?? true
-      }));
-      if (parsed.some(category => !('active' in category) || 'code' in category)) {
+      const normalized = parsed
+        .filter(category => !this.isLegacyDemoCategory(category))
+        .map(category => ({
+          id: category.id,
+          name: category.name,
+          description: category.description ?? '',
+          active: category.active ?? true,
+          ...(category.source === 'api' ? { source: 'api' as const } : {})
+        }));
+      if (
+        normalized.length !== parsed.length
+        || parsed.some(category => !('active' in category) || 'code' in category)
+      ) {
         localStorage.setItem(this.storageKey, JSON.stringify(normalized));
       }
       return normalized;
     } catch {
-      return this.seedDefaultCategories();
+      return [];
     }
   }
 
-  private seedDefaultCategories(): Category[] {
-    if (this.isBrowser) {
-      localStorage.setItem(this.storageKey, JSON.stringify(INITIAL_CATEGORIES));
-    }
-    return INITIAL_CATEGORIES;
+  private isLegacyDemoCategory(category: Category): boolean {
+    return category.source !== 'api'
+      && LEGACY_DEMO_CATEGORY_NAMES.has(category.name.trim().toLocaleLowerCase());
   }
 
   private saveCategories(categories: Category[]): void {
@@ -136,7 +131,9 @@ export class CategoryService {
     }
 
     const list = this.categoriesState();
-    const id = list.reduce((maxId, c) => Math.max(maxId, c.id), 0) + 1;
+    const id = list
+      .filter(existing => existing.source !== 'api')
+      .reduce((maxId, existing) => Math.max(maxId, existing.id), 0) + 1;
     const newCategory: Category = {
       ...normalized,
       id,
@@ -148,7 +145,7 @@ export class CategoryService {
   updateCategory(id: number, updated: CategoryInput): boolean {
     const list = this.categoriesState();
     const index = list.findIndex(c => c.id === id);
-    if (index === -1) {
+    if (index === -1 || list[index].source === 'api') {
       return false;
     }
 
@@ -178,7 +175,7 @@ export class CategoryService {
   deleteCategory(id: number): boolean {
     const list = this.categoriesState();
     const category = list.find(c => c.id === id);
-    if (!category || this.productService.countProductsInCategory(category.name) > 0) {
+    if (!category || category.source === 'api' || this.productService.countProductsInCategory(category.name) > 0) {
       return false;
     }
     const filtered = list.filter(c => c.id !== id);

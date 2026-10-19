@@ -6,7 +6,6 @@
       </span>
       <span class="brand-text">
         <span class="brand-name">E-Commerce</span>
-        <span class="brand-region">Industrial UK Portal</span>
       </span>
     </a>
   </div>
@@ -36,8 +35,17 @@
       <span class="menu-title">Categories</span>
     </a>
 
-    @if (authService.hasRole(['admin'])) {
+    @if (authService.isAdmin()) {
       <span class="menu-label admin-menu-label">Administration</span>
+      <a
+        routerLink="/admin/carts"
+        routerLinkActive="active"
+        class="menu-item"
+        id="sidebar-nav-carts"
+      >
+        <span class="pi pi-shopping-cart menu-icon" aria-hidden="true"></span>
+        <span class="menu-title">Cart Management</span>
+      </a>
       <a
         routerLink="/admin/users"
         routerLinkActive="active"

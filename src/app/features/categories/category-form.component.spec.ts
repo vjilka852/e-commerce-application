@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { CategoryFormComponent } from './category-form.component';
@@ -11,7 +12,7 @@ describe('CategoryFormComponent', () => {
     localStorage.removeItem('ecommerce_products');
     await TestBed.configureTestingModule({
       imports: [CategoryFormComponent],
-      providers: [provideRouter([]), MessageService]
+      providers: [provideHttpClient(), provideRouter([]), MessageService]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CategoryFormComponent);

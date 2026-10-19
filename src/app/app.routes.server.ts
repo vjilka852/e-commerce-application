@@ -42,6 +42,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
+    path: 'admin/users/api/new',
+    renderMode: RenderMode.Client
+  },
+  {
     path: 'admin/users/:id/edit',
     renderMode: RenderMode.Client
   },

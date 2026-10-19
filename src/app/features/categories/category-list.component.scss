@@ -31,6 +31,34 @@
   font-size: 0.88rem;
 }
 
+.category-load-error {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--app-danger-bg);
+  border-radius: 7px;
+  background: var(--app-danger-bg);
+  color: var(--app-danger-text);
+  font-size: 0.82rem;
+
+  > .pi {
+    color: var(--app-danger-text);
+  }
+}
+
+.api-source-label {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: var(--app-surface-muted);
+  color: var(--ind-slate-500);
+  font-size: 0.65rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
 .toolbar {
   min-height: 2.75rem;
 }
